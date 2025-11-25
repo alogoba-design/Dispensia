@@ -3,43 +3,104 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Planner Food</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planner Food - Avanzado</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <style>
-body { font-family: Arial; padding:20px; }
-.meal-card { border:1px solid #ccc; padding:10px; margin:10px; border-radius:8px; }
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#fafafa; }
+header { background:#4CAF50; color:white; padding:15px; text-align:center; font-size:24px; }
+.container { padding:20px; max-width:900px; margin:auto; }
+.day-card { background:white; padding:15px; border-radius:8px; margin-bottom:15px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
+.day-card h3 { margin-top:0; }
+.select-meal { width:100%; padding:10px; border-radius:6px; border:1px solid #ccc; }
+#shoppingList, #recipeView { margin-top:30px; background:white; padding:15px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1); }
 </style>
 </head>
 <body>
-<h1>Planner Food</h1>
-<div id="meals"></div>
+<header>Planner Food - Avanzado</header>
+<div class="container">
+<h2>Plan semanal</h2>
+<div id="week"></div>
+
+<h2>Lista de compras</h2>
+<div id="shoppingList"></div>
+
+<h2>Ficha del plato</h2>
+<div id="recipeView"></div>
+</div>
+
 <script>
 const URL_PLATOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
+const URL_ING = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=688098548&single=true&output=csv";
+const URL_PASOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=1382429978&single=true&output=csv";
 
 async function fetchCSV(url){
   const t = await (await fetch(url)).text();
   const rows = t.split("\n").map(r=>r.split(/[,;]+/));
-  const head = rows.shift();
-  return rows.filter(r=>r.length>=head.length).map(r=>{
-    let o={}; r.forEach((v,i)=>o[head[i]]=v); return o;
+  const head = rows.shift().map(h=>h.trim());
+  return rows.filter(r=>r.length>=head.length && r[0].trim()!="").map(r=>{
+    let o={}; r.forEach((v,i)=>o[head[i]]=v.trim()); return o;
   });
 }
 
+let meals = [];
+const weekDays = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+let selected = {};
+
 async function load(){
-  const platos = await fetchCSV(URL_PLATOS);
-  const cont = document.getElementById("meals");
-  platos.forEach(p=>{
-    const d = document.createElement("div");
-    d.className="meal-card";
-    d.innerHTML = "<h3>"+p.nombre_plato+"</h3>"
-      +"<p>Tiempo: "+p["tiempo_preparacion(min)"]+" min</p>"
-      +"<p>Porciones: "+p.porciones+"</p>"
-      +"<p>Dificultad: "+p.dificultad+"</p>"
-      +"<a href='"+p.url_pagina+"' target='_blank'>Ver receta</a>";
-    cont.appendChild(d);
+  const p = await fetchCSV(URL_PLATOS);
+  const ing = await fetchCSV(URL_ING);
+  const pasos = await fetchCSV(URL_PASOS);
+
+  meals = p.map(m=>({
+    id: m.codigo,
+    name: m.nombre_plato,
+    time: m["tiempo_preparacion(min)"],
+    servings: m.porciones,
+    diff: m.dificultad,
+    url: m.url_pagina,
+    ingredients: ing.filter(i=>i.codigo_plato===m.codigo),
+    steps: pasos.filter(s=>s.codigo===m.codigo).sort((a,b)=>Number(a.orden)-Number(b.orden))
+  }));
+
+  renderWeek();
+}
+
+function renderWeek(){
+  const c = document.getElementById("week");
+  c.innerHTML="";
+  weekDays.forEach(d=>{
+    const div = document.createElement("div");
+    div.className="day-card";
+    div.innerHTML = "<h3>"+d+"</h3>";
+    const sel = document.createElement("select");
+    sel.className="select-meal";
+    sel.innerHTML = "<option value=''>Seleccionar plato...</option>" +
+      meals.map(m=>"<option value='"+m.id+"'>"+m.name+"</option>").join("");
+    sel.onchange = ()=>{ selected[d]=sel.value; updateShopping(); };
+    div.appendChild(sel);
+    c.appendChild(div);
   });
 }
+
+function updateShopping(){
+  const box = document.getElementById("shoppingList");
+  let all = {};
+  Object.values(selected).forEach(id=>{
+    const meal = meals.find(m=>m.id===id);
+    if(!meal) return;
+    meal.ingredients.forEach(i=>{
+      const key = i.ingrediente+"|"+i.unidad_medida;
+      all[key] = (all[key]||0) + (Number(i.cantidad)||0);
+    });
+  });
+  box.innerHTML = "<ul>" + Object.entries(all).map(([k,v])=>{
+    const [name,unit]=k.split("|");
+    return "<li>"+name+": "+v+" "+unit+"</li>";
+  }).join("") + "</ul>";
+}
+
 load();
 </script>
+
 </body>
 </html>
