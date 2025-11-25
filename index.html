@@ -1,12 +1,45 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Planificador de Platos Semanal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Content omitted for brevity in this environment -->
-  <p>Archivo generado. Reemplaza este bloque con el contenido completo que te pasé en el mensaje previo.</p>
+<meta charset="UTF-8">
+<title>Planner Food</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body { font-family: Arial; padding:20px; }
+.meal-card { border:1px solid #ccc; padding:10px; margin:10px; border-radius:8px; }
+</style>
 </head>
 <body>
+<h1>Planner Food</h1>
+<div id="meals"></div>
+<script>
+const URL_PLATOS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
+
+async function fetchCSV(url){
+  const t = await (await fetch(url)).text();
+  const rows = t.split("\n").map(r=>r.split(/[,;]+/));
+  const head = rows.shift();
+  return rows.filter(r=>r.length>=head.length).map(r=>{
+    let o={}; r.forEach((v,i)=>o[head[i]]=v); return o;
+  });
+}
+
+async function load(){
+  const platos = await fetchCSV(URL_PLATOS);
+  const cont = document.getElementById("meals");
+  platos.forEach(p=>{
+    const d = document.createElement("div");
+    d.className="meal-card";
+    d.innerHTML = "<h3>"+p.nombre_plato+"</h3>"
+      +"<p>Tiempo: "+p["tiempo_preparacion(min)"]+" min</p>"
+      +"<p>Porciones: "+p.porciones+"</p>"
+      +"<p>Dificultad: "+p.dificultad+"</p>"
+      +"<a href='"+p.url_pagina+"' target='_blank'>Ver receta</a>";
+    cont.appendChild(d);
+  });
+}
+load();
+</script>
 </body>
 </html>
