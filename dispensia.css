@@ -1,65 +1,60 @@
-body { font-family: "Inter", sans-serif; margin:0; background:#f3f4f5; }
+body{margin:0;font-family:Inter,sans-serif;background:#edeef0}
 
-.topbar {
-  background:#35c46c; color:white; height:60px;
-  display:flex; justify-content:space-between; align-items:center;
-  padding:0 24px; font-weight:600; box-shadow:0 3px 10px rgba(0,0,0,.1);
-}
-.logo { font-size:24px; }
+/* TOP */
+.topbar{
+ background:#36CE6F;height:62px;color:#fff;
+ display:flex;align-items:center;justify-content:space-between;
+ padding:0 30px;font-size:18px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.nav button{background:#fff;color:#36CE6F;border:none;padding:8px 14px;
+ font-weight:600;border-radius:8px;margin-left:8px;cursor:pointer;transition:.25s}
+.nav button:hover{background:#eaffea}
 
-#hero {
-  background:url('assets/marble-grey.jpg'); /* opcional */
-  text-align:center; padding:60px 20px;
-  color:#1d1d1d; font-size:22px;
-}
+/* HERO */
+#hero{
+ background:#dfe3df url('assets/marble.jpg') center/cover no-repeat;
+ text-align:center;padding:60px 20px;color:#222}
+#hero h1{font-size:34px;margin-bottom:10px}
+#hero p{font-size:16px;opacity:.85}
 
-#filters { display:flex; gap:10px; padding:20px; flex-wrap:wrap; }
-.chip {
-  background:#eafcef; color:#1d1d1d; border-radius:20px;
-  padding:8px 14px; cursor:pointer; transition:.3s;
-}
-.chip:hover, .chip.active { background:#35c46c; color:white; }
+/* FILTERS */
+#filters{display:flex;gap:10px;padding:20px;flex-wrap:wrap}
+.chip{background:#f2fff4;padding:8px 14px;border-radius:22px;font-size:14px;
+ cursor:pointer;transition:.25s}
+.chip.active,.chip:hover{background:#36CE6F;color:#fff}
 
-.grid {
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:22px; padding:20px;
-}
+/* GRID */
+.grid{
+ display:grid;gap:24px;padding:30px;
+ grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card{
+ background:#fff;border-radius:16px;overflow:hidden;
+ box-shadow:0 4px 16px rgba(0,0,0,.08);
+ cursor:pointer;transition:.3s}
+.card:hover{transform:scale(1.05)}
+.card img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.card-body{padding:14px}
+.card-body h3{margin:0;font-size:18px}
+.card-body p{margin:5px 0;color:#777;font-size:14px}
+.card button{width:100%;padding:10px;margin-top:8px;font-size:14.5px;
+ background:#36CE6F;border:none;color:#fff;border-radius:10px}
 
-.card {
-  background:white; border-radius:18px;
-  overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,.08);
-  transition:.3s; cursor:pointer;
-}
-.card:hover { transform:scale(1.03); }
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;justify-content:center;
+ align-items:center;background:rgba(0,0,0,.55);padding:20px;z-index:20}
+.modal-content{
+ background:#fff;border-radius:16px;max-height:90vh;overflow:auto;
+ width:95%;max-width:900px;padding:20px}
+.modal-wide{display:flex;gap:22px}
+.modal-img{width:45%;border-radius:14px}
+.modal-body{width:55%}
+iframe{width:100%;height:300px;border:none;margin:12px 0;border-radius:14px}
 
-.card img { width:100%; aspect-ratio:4/3; object-fit:cover; }
-.card-body { padding:14px; }
-.card-body h3 { margin:0 0 6px; font-size:18px; }
-.card-body p { margin:4px 0; font-size:14px; color:#666; }
-.card button {
-  margin-top:10px; width:100%; background:#35c46c;
-  border:none; color:white; padding:10px; border-radius:10px; cursor:pointer;
-  font-size:15px;
-}
-
-/* ========== MODALES ========== */
-
-.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
-  justify-content:center; align-items:center; padding:30px; }
-.modal-content {
-  background:white; width:90%; max-width:700px; border-radius:12px;
-  padding:20px; max-height:90vh; overflow:auto;
-}
-.close { float:right; font-size:26px; cursor:pointer; }
-
-#weekBoard {
-  display:grid; grid-template-columns:repeat(7,1fr);
-  gap:10px; margin-top:20px;
-}
-.day-box {
-  background:white; border-radius:12px; padding:12px;
-  min-height:120px; box-shadow:0 2px 6px rgba(0,0,0,.05);
-}
-.day-box h4 { margin:0 0 6px; }
-.day-box img { width:100%; border-radius:8px; }
+/* WEEK PLANNER */
+.week-grid{display:grid;gap:10px;margin-top:20px;
+ grid-template-columns:repeat(7,1fr)}
+.day-box{
+ background:#fff;border-radius:12px;padding:10px;text-align:center;
+ box-shadow:0 3px 10px rgba(0,0,0,.07);min-height:140px}
+.day-box img{width:100%;border-radius:6px}
+.day-box button{margin-top:6px;background:#36CE6F;color:#fff;padding:6px;
+ border:none;border-radius:7px}
