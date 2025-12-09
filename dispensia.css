@@ -1,141 +1,130 @@
-body {
+/* RESET */
+*{
   margin:0;
-  font-family: "Inter", sans-serif;
-  background:#f7f7f7;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Inter",sans-serif;
 }
 
-/* ============ HEADER FIJO ============ */
-header {
-  background:#49A569;
+/* HEADER FIJO TOP */
+header{
+  position:fixed;
+  top:0; left:0;
+  width:100%;
+  height:70px;
+  background:#0b3d1e;
   color:white;
-  padding:14px 28px;
-  font-size:20px;
-  font-weight:600;
   display:flex;
   justify-content:space-between;
   align-items:center;
-  position:fixed;
-  top:0; left:0; width:100%;
-  z-index:20;
+  padding:0 30px;
+  font-size:20px;
+  font-weight:600;
+  z-index:100;
 }
 
-#logo { font-size:22px; letter-spacing:1px; }
-
-nav .nav-item {
-  margin:0 14px;
+header nav span{
+  margin-left:22px;
   cursor:pointer;
+  font-weight:400;
+  opacity:.8;
+}
+header nav span:hover{
+  opacity:1;
 }
 
-/* ============ LAYOUT ============ */
-#layout {
-  margin-top:85px; /* deja visible header */
-  padding:30px;
+/* CUERPO PRINCIPAL HF */
+#layout{
+  padding-top:95px;  /* deja visible header */
+  height:calc(100vh - 95px);
+  display:flex;
+  flex-direction:column;
 }
 
-#title-zone h1 { margin:0; font-size:26px; font-weight:700; }
-.sub { color:#777; margin-bottom:20px; }
-
-/* +++++ Scroll +++++ */
-#recipe-scroll {
-  height: calc(100vh - 150px);
-  overflow-y: auto;
-  padding-right:10px;
+/* TITULAR FIJO */
+#title-zone{
+  padding:15px 30px 10px;
+  background:white;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);
+}
+#title-zone h1{
+  font-size:26px;
+  font-weight:700;
+  margin-bottom:6px;
 }
 
-/* ============ GRID CARDS ============ */
-.grid {
+/* SCROLL SOLO PARA LAS RECETAS */
+#recipe-scroll{
+  flex:1;
+  overflow-y:auto;
+  padding:25px;
+}
+
+/* GRID TAMAÑO CONTROLADO */
+.grid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
   gap:18px;
 }
 
-.card {
+/* TARJETAS HF */
+.card{
   background:white;
-  border-radius:14px;
+  border-radius:12px;
   overflow:hidden;
+  box-shadow:0 4px 10px rgba(0,0,0,.10);
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,.07);
-  transition:.2s;
+  transition:.25s;
 }
+.card:hover{ transform:translateY(-4px); }
 
-.card:hover { transform:scale(1.02); }
-
-.card img {
+.card img{
   width:100%;
-  height:180px;
+  height:150px;
   object-fit:cover;
 }
-
-.card h3 {
-  margin:10px 14px 0;
-  font-size:18px;
+.card h3{
+  padding:10px 10px 4px;
+  font-size:16px;
+  font-weight:600;
+}
+.card p{
+  padding:0 10px 10px;
+  font-size:13px;
+  opacity:.7;
 }
 
-.card p {
-  margin:4px 14px 14px;
-  font-size:14px;
-  color:#555;
+/* MODAL */
+#modal.hidden{ display:none; }
+#modal{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.55);
+  display:flex; align-items:center; justify-content:center;
+  padding:40px;
+  z-index:200;
 }
 
-/* ============ MODAL FULLSCREEN ============ */
-#modal.hidden { display:none; }
-
-#modal {
-  position:fixed;
-  inset:0;
-  backdrop-filter:blur(6px) brightness(.55);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-}
-
-#modal-box {
+#modal-box{
+  width:900px;
   background:white;
-  width:80%;
-  max-width:1000px;
-  border-radius:18px;
-  overflow:hidden;
+  border-radius:14px;
   display:flex;
   gap:22px;
   padding:22px;
 }
 
-#close {
-  position:absolute;
-  right:30px;
-  top:22px;
-  font-size:22px;
-  border:none;
-  background:none;
-  cursor:pointer;
-  color:#444;
+#close{
+  position:absolute; top:20px; right:30px;
+  font-size:24px;
+  background:none; border:none; cursor:pointer;
 }
 
-#media-block {
-  width:45%;
-  position:relative;
+#media-block{ width:45%; }
+#media-block iframe,#media-block img{
+  width:100%; aspect-ratio:16/9;
+  border-radius:10px;
 }
 
-#media-block iframe {
-  width:100%;
-  aspect-ratio:16/9;
-  border:none;
-  border-radius:14px;
-  margin-bottom:12px;
-}
+#modalText{ width:55%; overflow-y:auto; max-height:70vh; }
 
-#media-block img {
-  width:100%;
-  border-radius:14px;
-  display:block;
-}
-
-#modalText {
-  width:55%;
-  overflow-y:auto;
-  max-height:70vh;
-}
-
-#modalText ul li,
-#modalText ol li { margin:6px 0; }
+#modalText li{ margin-bottom:6px; }
