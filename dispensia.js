@@ -7,7 +7,7 @@ const SHEET_ING_URL    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhil
 const SHEET_PASOS_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=1382429978&single=true&output=csv";
 
 const IMG_BASE = "assets/img/";
-const feedEl = document.getElementById("gallery");
+const feedEl = document.getElementById("feed");
 const modalEl  = document.getElementById("recipeModal");
 
 let platos = [], ingredientes = [], pasos = [];
