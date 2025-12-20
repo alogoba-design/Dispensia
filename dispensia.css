@@ -71,13 +71,14 @@ body{
 .card-actions .primary{background:var(--green);color:#fff;}
 .card-actions .secondary{background:#edf2f7;}
 
-/* BOTTOM SHEET */
+/* MODAL */
 .sheet{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,.4);
   display:none;
   align-items:flex-end;
+  z-index:50;
 }
 .sheet-content{
   background:#fff;

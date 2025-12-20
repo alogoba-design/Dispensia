@@ -8,13 +8,11 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="app-header">
   <h1>DISPENSIA</h1>
   <p>Planifica tus comidas</p>
 </header>
 
-<!-- FILTROS -->
 <section class="chips">
   <button class="chip active" onclick="setFilter('all',this)">Todas</button>
   <button class="chip" onclick="setFilter('rapido',this)">Rápidas</button>
@@ -22,34 +20,34 @@
   <button class="chip" onclick="setFilter('criollo',this)">Criollo</button>
 </section>
 
-<!-- FEED -->
 <main id="feed" class="feed"></main>
 
-<!-- MODAL RECETA (BOTTOM SHEET) -->
-<div id="sheet" class="sheet">
+<!-- MODAL RECETA -->
+<div id="recipeModal" class="sheet">
   <div class="sheet-content">
-
     <button class="sheet-close" onclick="closeRecipe()">✕</button>
 
     <div class="media">
-      <iframe id="sheetVideo" allowfullscreen></iframe>
+      <iframe id="videoFrame" allowfullscreen></iframe>
     </div>
 
-    <h2 id="sheetName"></h2>
-    <p class="meta" id="sheetMeta"></p>
+    <h2 id="modalName"></h2>
+    <p class="meta">
+      <span id="modalTime"></span> ·
+      <span id="modalPortions"></span> ·
+      <span id="modalDifficulty"></span>
+    </p>
 
     <h3>Ingredientes</h3>
-    <ul id="sheetIngredients"></ul>
+    <ul id="modalIngredients"></ul>
 
     <h3>Preparación</h3>
-    <ol id="sheetSteps"></ol>
+    <ol id="modalSteps"></ol>
 
     <button class="primary-cta">Elegir plato</button>
-
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <button class="active">🏠<span>Inicio</span></button>
   <button>📅<span>Semana</span></button>
