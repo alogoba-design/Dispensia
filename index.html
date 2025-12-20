@@ -16,40 +16,33 @@
 
 <!-- FILTROS -->
 <section class="chips">
-  <button class="chip active">Todas</button>
-  <button class="chip">Rápidas</button>
-  <button class="chip">Económicas</button>
-  <button class="chip">Proteína</button>
-  <button class="chip">Suaves</button>
+  <button class="chip active" onclick="setFilter('all',this)">Todas</button>
+  <button class="chip" onclick="setFilter('rapido',this)">Rápidas</button>
+  <button class="chip" onclick="setFilter('pollo',this)">Pollo</button>
+  <button class="chip" onclick="setFilter('criollo',this)">Criollo</button>
 </section>
 
-<!-- HOME / FEED -->
-<main class="feed" id="feed"></main>
+<!-- FEED -->
+<main id="feed" class="feed"></main>
 
 <!-- MODAL RECETA (BOTTOM SHEET) -->
-<div class="sheet" id="recipeSheet">
+<div id="sheet" class="sheet">
   <div class="sheet-content">
 
     <button class="sheet-close" onclick="closeRecipe()">✕</button>
 
     <div class="media">
-      <iframe id="recipeVideo" allowfullscreen></iframe>
+      <iframe id="sheetVideo" allowfullscreen></iframe>
     </div>
 
-    <h2 id="recipeName"></h2>
-    <p class="meta" id="recipeMeta"></p>
-
-    <h3>Asignar a un día</h3>
-    <div class="days">
-      <button>L</button><button>M</button><button>X</button>
-      <button>J</button><button>V</button><button>S</button><button>D</button>
-    </div>
+    <h2 id="sheetName"></h2>
+    <p class="meta" id="sheetMeta"></p>
 
     <h3>Ingredientes</h3>
-    <ul id="recipeIngredients"></ul>
+    <ul id="sheetIngredients"></ul>
 
     <h3>Preparación</h3>
-    <ol id="recipeSteps"></ol>
+    <ol id="sheetSteps"></ol>
 
     <button class="primary-cta">Elegir plato</button>
 

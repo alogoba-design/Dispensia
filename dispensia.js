@@ -1,60 +1,78 @@
+const SHEET_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
+
 const FEED = document.getElementById("feed");
-const SHEET = document.getElementById("recipeSheet");
+const SHEET = document.getElementById("sheet");
 
-/* MOCK DATA (para validar UX) */
-const meals = [
-  {
-    name: "Causa de Pollo",
-    meta: "⏱ 30 min · 🍽 4 porciones",
-    img: "https://images.unsplash.com/photo-1604908554269-8d4c45b6f8c7",
-    video: "https://www.youtube.com/embed/8QG8f5vK2kg",
-    ingredients: ["Papa amarilla", "Pollo", "Mayonesa", "Ají amarillo"],
-    steps: ["Hervir papas", "Deshilachar pollo", "Armar la causa"]
-  },
-  {
-    name: "Ají de Gallina",
-    meta: "⏱ 35 min · 🍽 4 porciones",
-    img: "https://images.unsplash.com/photo-1625944226823-90b3f6b4c6f5",
-    video: "https://www.youtube.com/embed/4v0kYxX7K9w",
-    ingredients: ["Pollo", "Pan", "Leche", "Ají amarillo"],
-    steps: ["Cocer pollo", "Licuar ají", "Mezclar todo"]
-  }
-];
+let DATA = [];
+let FILTER = "all";
 
-function renderFeed() {
-  FEED.innerHTML = "";
-  meals.forEach(m => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${m.img}">
-      <div class="card-body">
-        <h3>${m.name}</h3>
-        <p>${m.meta}</p>
-        <div class="card-actions">
-          <button class="primary" onclick="openRecipe('${m.name}')">Elegir plato</button>
-          <button class="secondary" onclick="openRecipe('${m.name}')">Ver receta</button>
-        </div>
-      </div>`;
-    FEED.appendChild(card);
+/* CSV PARSER ROBUSTO */
+async function loadCSV(){
+  const text = await (await fetch(SHEET_URL)).text();
+  const rows = text.trim().split("\n");
+  const headers = rows.shift().split("\t");
+
+  return rows.map(r=>{
+    const cols = r.split("\t");
+    const o = {};
+    headers.forEach((h,i)=>o[h]=cols[i]);
+    return o;
   });
 }
 
-function openRecipe(name) {
-  const m = meals.find(x => x.name === name);
-  document.getElementById("recipeName").textContent = m.name;
-  document.getElementById("recipeMeta").textContent = m.meta;
-  document.getElementById("recipeVideo").src = m.video;
-  document.getElementById("recipeIngredients").innerHTML =
-    m.ingredients.map(i => `<li>${i}</li>`).join("");
-  document.getElementById("recipeSteps").innerHTML =
-    m.steps.map(s => `<li>${s}</li>`).join("");
-  SHEET.style.display = "flex";
+/* RENDER FEED */
+function render(){
+  FEED.innerHTML="";
+  DATA
+    .filter(r=>["1","2"].includes(r.etapa))
+    .filter(r=>{
+      if(FILTER==="all") return true;
+      return r.tipo_plato?.includes(FILTER);
+    })
+    .forEach(r=>{
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`
+        <img src="assets/img/${r.imagen_archivo}">
+        <div class="card-body">
+          <h3>${r.nombre_plato}</h3>
+          <p>⏱ ${r.tiempo_preparacion(min)} min · 🍽 ${r.porciones}</p>
+          <div class="card-actions">
+            <button class="primary" onclick="openRecipe('${r.codigo}')">Elegir plato</button>
+            <button class="secondary" onclick="openRecipe('${r.codigo}')">Ver receta</button>
+          </div>
+        </div>`;
+      FEED.appendChild(card);
+    });
 }
 
-function closeRecipe() {
-  document.getElementById("recipeVideo").src = "";
-  SHEET.style.display = "none";
+/* FILTRO */
+function setFilter(f,el){
+  FILTER=f;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+  render();
 }
 
-renderFeed();
+/* MODAL */
+function openRecipe(codigo){
+  const r = DATA.find(x=>x.codigo===codigo);
+  document.getElementById("sheetName").textContent=r.nombre_plato;
+  document.getElementById("sheetMeta").textContent=
+    `⏱ ${r.tiempo_preparacion(min)} min · 🍽 ${r.porciones} · ${r.dificultad}`;
+  document.getElementById("sheetVideo").src=
+    `https://www.youtube.com/embed/${r.youtube_id}`;
+  SHEET.style.display="flex";
+}
+
+function closeRecipe(){
+  document.getElementById("sheetVideo").src="";
+  SHEET.style.display="none";
+}
+
+/* INIT */
+(async()=>{
+  DATA = await loadCSV();
+  render();
+})();
