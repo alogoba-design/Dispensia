@@ -2,130 +2,67 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>DISPENSIA – Planificador de comidas</title>
+  <title>DISPENSIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="dispensia.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="logo">DISPENSIA</div>
-      <div class="tagline">Planifica, cocina y disfruta sin complicarte.</div>
-    </div>
-    <div class="topbar-right">
-      <button class="nav-btn" onclick="scrollToCatalog()">Explorar platos</button>
-      <button class="nav-btn" onclick="openPlanner()">📅 Mi semana</button>
-      <button class="nav-btn primary" onclick="openShopping()">🛒 Lista de compras</button>
-    </div>
-  </header>
 
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Elige tus platos a tu estilo.</h1>
-      <p>
-        Explora recetas, arrástralas a tu semana y obtén automáticamente la lista de compras.
-      </p>
-      <div class="hero-badges">
-        <span>🥗 Recetas caseras</span>
-        <span>📅 Plan semanal visual</span>
-        <span>🛒 Lista consolidada</span>
-      </div>
+<!-- HEADER -->
+<header class="app-header">
+  <h1>DISPENSIA</h1>
+  <p>Planifica tus comidas</p>
+</header>
+
+<!-- FILTROS -->
+<section class="chips">
+  <button class="chip active">Todas</button>
+  <button class="chip">Rápidas</button>
+  <button class="chip">Económicas</button>
+  <button class="chip">Proteína</button>
+  <button class="chip">Suaves</button>
+</section>
+
+<!-- HOME / FEED -->
+<main class="feed" id="feed"></main>
+
+<!-- MODAL RECETA (BOTTOM SHEET) -->
+<div class="sheet" id="recipeSheet">
+  <div class="sheet-content">
+
+    <button class="sheet-close" onclick="closeRecipe()">✕</button>
+
+    <div class="media">
+      <iframe id="recipeVideo" allowfullscreen></iframe>
     </div>
-  </section>
 
-  <!-- Barra resumen de semana -->
-  <section class="week-summary">
-    <div class="week-summary-left">
-      <span id="weekCountBadge" class="pill pill-primary">0 platos en tu semana</span>
-      <span class="pill pill-soft">Arrastra platos a los días o usa “Agregar a un día”</span>
+    <h2 id="recipeName"></h2>
+    <p class="meta" id="recipeMeta"></p>
+
+    <h3>Asignar a un día</h3>
+    <div class="days">
+      <button>L</button><button>M</button><button>X</button>
+      <button>J</button><button>V</button><button>S</button><button>D</button>
     </div>
-    <div class="week-summary-right">
-      <button class="ghost-btn" onclick="openPlanner()">Ver plan semanal</button>
-      <button class="ghost-btn" onclick="clearWeek()">Limpiar semana</button>
-    </div>
-  </section>
 
-  <!-- Vista mini planner (tipo HelloFresh) -->
-  <section class="inline-planner">
-    <div class="inline-planner-grid" id="inlinePlanner"></div>
-  </section>
+    <h3>Ingredientes</h3>
+    <ul id="recipeIngredients"></ul>
 
-  <!-- Filtros -->
-  <section class="filters">
-    <div class="filters-left">
-      <span class="chip active" onclick="filterMeals('all', this)">Todas</span>
-      <span class="chip" onclick="filterMeals('rapido', this)">Rápidas (&lt;=25 min)</span>
-      <span class="chip" onclick="filterMeals('econ', this)">Económicas</span>
-      <span class="chip" onclick="filterMeals('prote', this)">Alta proteína</span>
-      <span class="chip" onclick="filterMeals('nopica', this)">Suaves (sin picante)</span>
-    </div>
-  </section>
+    <h3>Preparación</h3>
+    <ol id="recipeSteps"></ol>
 
-  <!-- Catálogo de platos -->
-  <main id="catalog">
-    <section class="gallery" id="gallery"></section>
-  </main>
+    <button class="primary-cta">Elegir plato</button>
 
-  <!-- Modal Receta -->
-  <div id="recipeModal" class="modal">
-    <div class="modal-content modal-recipe">
-      <button class="close-btn" onclick="closeRecipe()">✕</button>
-      <div class="modal-recipe-media">
-        <div id="modalVideoContainer" class="video-wrapper"></div>
-        <img id="modalImg" class="modal-img" alt="Foto del plato" />
-      </div>
-      <div class="modal-recipe-body">
-        <h2 id="modalName"></h2>
-        <p class="meta">
-          <span id="modalTime"></span> • <span id="modalPortions"></span> •
-          <span id="modalDifficulty"></span>
-        </p>
-
-        <h3>Ingredientes</h3>
-        <ul id="modalIngredients" class="ingredients-list"></ul>
-        
-        <h3>Preparación</h3>
-        <ol id="modalSteps" class="steps-list"></ol>
-        
-        <!-- 🔥 NUEVO BLOQUE CORRECTO -->
-        <h3 style="margin-top:18px;">Asignar a un día</h3>
-        <div id="assignBtns" class="assign-grid">
-          <button data-day="lunes"    onclick="assignToDay('lunes', activeRecipe)">Lunes</button>
-          <button data-day="martes"   onclick="assignToDay('martes', activeRecipe)">Martes</button>
-          <button data-day="miercoles"onclick="assignToDay('miercoles', activeRecipe)">Miércoles</button>
-          <button data-day="jueves"   onclick="assignToDay('jueves', activeRecipe)">Jueves</button>
-          <button data-day="viernes"  onclick="assignToDay('viernes', activeRecipe)">Viernes</button>
-          <button data-day="sabado"   onclick="assignToDay('sabado', activeRecipe)">Sábado</button>
-          <button data-day="domingo"  onclick="assignToDay('domingo', activeRecipe)">Domingo</button>
-        </div>        
-    </div>
   </div>
+</div>
 
-  <!-- Modal Planner completo -->
-  <div id="plannerModal" class="modal">
-    <div class="modal-content modal-planner">
-      <button class="close-btn" onclick="closePlanner()">✕</button>
-      <h2>Tu semana DISPENSIA</h2>
-      <p class="planner-subtitle">Arrastra platos desde el catálogo o haz click en “Agregar a un día”.</p>
-      <div id="weekBoard" class="week-grid"></div>
-    </div>
-  </div>
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="active">🏠<span>Inicio</span></button>
+  <button>📅<span>Semana</span></button>
+  <button>🛒<span>Compras</span></button>
+</nav>
 
-  <!-- Modal Lista de compras -->
-  <div id="shoppingModal" class="modal">
-    <div class="modal-content modal-shopping">
-      <button class="close-btn" onclick="closeShopping()">✕</button>
-      <h2>Lista de compras consolidada</h2>
-      <p class="shopping-subtitle">
-        Basada en todos los platos seleccionados en tu semana.
-      </p>
-      <div id="shoppingList"></div>
-      <div class="shopping-actions">
-        <button class="ghost-btn" onclick="window.print()">Imprimir / PDF 🖨</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="dispensia.js"></script>
+<script src="dispensia.js"></script>
 </body>
 </html>
