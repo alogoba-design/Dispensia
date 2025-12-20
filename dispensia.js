@@ -56,20 +56,52 @@ function setFilter(f,el){
 }
 
 /* MODAL */
-function openRecipe(codigo){
-  const r = DATA.find(x=>x.codigo===codigo);
-  document.getElementById("sheetName").textContent=r.nombre_plato;
-  document.getElementById("sheetMeta").textContent=
-    `⏱ ${r.tiempo_preparacion(min)} min · 🍽 ${r.porciones} · ${r.dificultad}`;
-  document.getElementById("sheetVideo").src=
-    `https://www.youtube.com/embed/${r.youtube_id}`;
-  SHEET.style.display="flex";
+function openRecipe(codigo) {
+  const r = DATA.find(x => x.codigo === codigo);
+  if (!r) return;
+
+  // Título
+  document.getElementById("modalName").textContent = r.nombre_plato;
+
+  // Meta
+  document.getElementById("modalTime").textContent =
+    `⏱ ${r["tiempo_preparacion(min)"]} min`;
+  document.getElementById("modalPortions").textContent =
+    `🍽 ${r.porciones} porciones`;
+  document.getElementById("modalDifficulty").textContent =
+    r.dificultad;
+
+  // Video YouTube
+  document.getElementById("modalVideoContainer").innerHTML = `
+    <iframe
+      src="https://www.youtube.com/embed/${r.youtube_id}"
+      frameborder="0"
+      allowfullscreen>
+    </iframe>
+  `;
+
+  // Imagen fallback
+  document.getElementById("modalImg").src =
+    `assets/img/${r.imagen_archivo}`;
+
+  // Ingredientes (temporal si aún no conectamos hoja de ingredientes)
+  document.getElementById("modalIngredients").innerHTML =
+    "<li>(Ingredientes vendrán de la siguiente hoja)</li>";
+
+  // Pasos (temporal)
+  document.getElementById("modalSteps").innerHTML =
+    "<li>(Preparación vendrá de la siguiente hoja)</li>";
+
+  // Mostrar modal
+  document.getElementById("recipeModal").style.display = "flex";
 }
 
-function closeRecipe(){
-  document.getElementById("sheetVideo").src="";
-  SHEET.style.display="none";
+
+function closeRecipe() {
+  document.getElementById("recipeModal").style.display = "none";
+  document.getElementById("modalVideoContainer").innerHTML = "";
 }
+
 
 /* INIT */
 (async()=>{
