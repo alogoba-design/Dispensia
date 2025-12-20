@@ -10,17 +10,28 @@ const IMG_PATH = "assets/img/";
 
 /* ============================ CSV PARSER SIMPLE ============================ */
 async function csv(url) {
-  const t = await (await fetch(url)).text();
-  const rows = t.split("\n").map((r) => r.split(","));
-  const head = rows.shift().map((h) => h.trim());
-  return rows
-    .filter((r) => r.length && r[0].trim() !== "")
-    .map((r) => {
-      const o = {};
-      r.forEach((v, i) => (o[head[i]] = (v ?? "").trim()));
-      return o;
+  const text = await (await fetch(url)).text();
+  const lines = text.trim().split("\n");
+
+  // Tomamos la primera fila como encabezados
+  const header = lines.shift().split(",").map(h => h.trim());
+
+  // Mapeamos cada fila en un objeto usando los títulos
+  const data = lines.map(line => {
+    const cols = line.split(",");
+
+    // Construye la fila basándose en los encabezados
+    const obj = {};
+    header.forEach((h, i) => {
+      obj[h] = cols[i] ? cols[i].trim() : "";
     });
+
+    return obj;
+  });
+
+  return data;
 }
+
 
 /* ============================ GLOBAL STATE ============================ */
 let PLATOS = [];
