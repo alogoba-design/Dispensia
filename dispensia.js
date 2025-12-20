@@ -128,4 +128,12 @@ document.getElementById("chips").addEventListener("click", (e) => {
 });
 
 /* ================= INITIALIZE ================= */
-loadData();
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    await loadData();   // carga platos, ingredientes y pasos
+    renderFeed();       // pinta las cards
+  } catch (err) {
+    console.error("Error inicializando DISPENSIA:", err);
+  }
+});
+
