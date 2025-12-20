@@ -1,205 +1,131 @@
-/***********************
- * 1) CONFIGURACIÓN
- ***********************/
-const IMG_BASE = "assets/img/";
+/*****************************************************
+ * DISPENSIA – código final conectado a tus 3 sheets
+ *****************************************************/
 
-/**
- * Pega aquí la URL PUBLICADA del sheet (no la de /edit).
- * Debe verse así (ejemplo):
- * https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?gid=0&single=true&output=csv
- */
 const SHEET_PLATOS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
+const SHEET_ING_URL    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=688098548&single=true&output=csv";
+const SHEET_PASOS_URL  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=1382429978&single=true&output=csv";
 
+const IMG_BASE = "assets/img/";
+const feedEl   = document.getElementById("feed");
+const modalEl  = document.getElementById("recipeModal");
 
-/***********************
- * 2) ESTADO
- ***********************/
-const feedEl = document.getElementById("feed");
-const modalEl = document.getElementById("recipeModal");
-
-let platos = [];
+let platos = [], ingredientes = [], pasos = [];
 let filtro = "all";
-let activeCodigo = null;
 
-/***********************
- * 3) UTILIDADES
- ***********************/
-function parseTags(tipo_plato) {
-  // tipo_plato viene como "criollo,pollo,crema"
-  if (!tipo_plato) return [];
-  return tipo_plato
-    .split(",")
-    .map(s => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function ytEmbed(youtube_id) {
-  if (!youtube_id) return "";
-  return `https://www.youtube.com/embed/${youtube_id}`;
-}
-
-function safeText(v) {
-  return (v ?? "").toString().trim();
-}
-
-function isEtapa12(etapa) {
-  const e = safeText(etapa);
-  return e === "1" || e === "2";
-}
-
-function isRapido(row) {
-  // Si tienes clasificacion_tiempo = "Rápidos" úsalo,
-  // o si quieres regla: tiempo <= 25:
-  const clas = safeText(row.clasificacion_tiempo).toLowerCase();
-  const t = Number(safeText(row["tiempo_preparacion(min)"]).replace(",", "."));
-  return clas.includes("ráp") || clas.includes("rap") || (Number.isFinite(t) && t <= 25);
-}
-
-/***********************
- * 4) CARGA DE DATOS (PAPAPARSE)
- ***********************/
-function loadPlatos() {
-  return new Promise((resolve, reject) => {
-    Papa.parse(SHEET_PLATOS_URL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => resolve(results.data),
-      error: (err) => reject(err)
-    });
+/* ================= CSV PARSE GENERAL ================= */
+async function fetchCSV(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  const lines = text.trim().split("\n");
+  const header = lines.shift().split(",");
+  return lines.map(r => {
+    const cols = r.split(",");
+    const obj = {};
+    header.forEach((h,i) => obj[h] = cols[i] ? cols[i].trim() : "");
+    return obj;
   });
 }
 
-/***********************
- * 5) RENDER FEED
- ***********************/
-function applyFilters(rows) {
-  let out = rows.filter(r => isEtapa12(r.etapa));
-
-  if (filtro === "all") return out;
-
-  if (filtro === "rapido") {
-    return out.filter(isRapido);
-  }
-
-  // filtro por tag dentro de tipo_plato
-  return out.filter(r => parseTags(r.tipo_plato).includes(filtro));
+/* ================= LOAD ALL DATA ================= */
+async function loadData() {
+  platos = await fetchCSV(SHEET_PLATOS_URL);
+  ingredientes = await fetchCSV(SHEET_ING_URL);
+  pasos = await fetchCSV(SHEET_PASOS_URL);
+  renderFeed();
 }
 
-function render() {
-  const show = applyFilters(platos);
+/* ========== FILTER UTILS ========== */
+function parseTags(str) {
+  return str.split(",").map(s => s.trim().toLowerCase());
+}
 
+function isEtapa12(etapa) {
+  return etapa === "1" || etapa === "2";
+}
+
+function isRapido(row) {
+  const t = Number(row["tiempo_preparacion(min)"]);
+  return t <= 25;
+}
+
+function matchesFilter(r) {
+  if (filtro === "all") return isEtapa12(r.etapa);
+  if (filtro === "rapido") return isEtapa12(r.etapa) && isRapido(r);
+  return isEtapa12(r.etapa) && parseTags(r.tipo_plato).includes(filtro);
+}
+
+/* ========== RENDER FEED ========== */
+function renderFeed() {
   feedEl.innerHTML = "";
+  const list = platos.filter(matchesFilter);
 
-  if (!show.length) {
-    feedEl.innerHTML = `
-      <div style="padding:14px;color:#6b7280;">
-        No hay platos para este filtro (o tu URL CSV no está bien publicada).
-      </div>
-    `;
+  if (list.length === 0) {
+    feedEl.innerHTML = `<div style="padding:14px;color:#6b7280;">No hay platos para este filtro.</div>`;
     return;
   }
 
-  show.forEach(r => {
-    const codigo = safeText(r.codigo);
-    const nombre = safeText(r.nombre_plato);
-    const mins = safeText(r["tiempo_preparacion(min)"]);
-    const porciones = safeText(r.porciones);
-    const imgFile = safeText(r.imagen_archivo);
-
+  list.forEach(r => {
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <img src="${IMG_BASE + imgFile}" alt="${nombre}" loading="lazy" />
+      <img src="${IMG_BASE + r.imagen_archivo}" alt="${r.nombre_plato}">
       <div class="card-body">
-        <h3>${nombre}</h3>
-        <p>⏱ ${mins} min · 🍽 ${porciones}</p>
+        <h3>${r.nombre_plato}</h3>
+        <p>⏱ ${r["tiempo_preparacion(min)"]} min · 🍽 ${r.porciones}</p>
         <div class="card-actions">
-          <button class="primary" data-open="${codigo}">Elegir plato</button>
-          <button class="secondary" data-open="${codigo}">Ver receta</button>
+          <button class="primary" onclick="openRecipe('${r.codigo}')">Elegir plato</button>
+          <button class="secondary" onclick="openRecipe('${r.codigo}')">Ver receta</button>
         </div>
-      </div>
-    `;
-
-    card.querySelectorAll("[data-open]").forEach(btn => {
-      btn.addEventListener("click", () => openRecipe(codigo));
-    });
-
+      </div>`;
     feedEl.appendChild(card);
   });
 }
 
-/***********************
- * 6) MODAL
- ***********************/
+/* ========== MODAL ========== */
 function openRecipe(codigo) {
-  const r = platos.find(x => safeText(x.codigo) === safeText(codigo));
+  const r = platos.find(p => p.codigo === codigo);
   if (!r) return;
 
-  activeCodigo = codigo;
+  document.getElementById("modalName").textContent = r.nombre_plato;
+  document.getElementById("modalTime").textContent = `⏱ ${r["tiempo_preparacion(min)"]} min`;
+  document.getElementById("modalPortions").textContent = `🍽 ${r.porciones}`;
+  document.getElementById("modalDifficulty").textContent = r.dificultad || "";
 
-  document.getElementById("modalName").textContent = safeText(r.nombre_plato);
-  document.getElementById("modalTime").textContent = `⏱ ${safeText(r["tiempo_preparacion(min)"])} min`;
-  document.getElementById("modalPortions").textContent = `🍽 ${safeText(r.porciones)}`;
-  document.getElementById("modalDifficulty").textContent = safeText(r.dificultad);
+  // youtube
+  document.getElementById("videoFrame").src = `https://www.youtube.com/embed/${r.youtube_id}`;
 
-  // Video
-  const src = ytEmbed(safeText(r.youtube_id));
-  document.getElementById("videoFrame").src = src;
+  // ingredientes de este plato
+  const ingList = ingredientes
+    .filter(i => i.codigo_plato === r.codigo)
+    .map(i => `<li>${i.ingrediente} — ${i.cantidad || "-"}</li>`)
+    .join("");
+  document.getElementById("modalIngredients").innerHTML = ingList;
 
-  // Por ahora, placeholders (cuando conectemos ingredientes/pasos de tus otras hojas)
-  document.getElementById("modalIngredients").innerHTML =
-    `<li>(Conectaremos tu hoja de Ingredientes en la siguiente fase)</li>`;
-  document.getElementById("modalSteps").innerHTML =
-    `<li>(Conectaremos tu hoja de Indicaciones en la siguiente fase)</li>`;
+  // pasos ordenados
+  const pasosList = pasos
+    .filter(p => p.codigo === r.codigo)
+    .sort((a,b) => Number(a.orden) - Number(b.orden))
+    .map(p => `<li>${p.indicacion}</li>`)
+    .join("");
+  document.getElementById("modalSteps").innerHTML = pasosList;
 
-  modalEl.setAttribute("aria-hidden", "false");
+  modalEl.style.display = "flex";
 }
 
 function closeRecipe() {
   document.getElementById("videoFrame").src = "";
-  modalEl.setAttribute("aria-hidden", "true");
+  modalEl.style.display = "none";
 }
 
-document.getElementById("closeBtn").addEventListener("click", closeRecipe);
-
-// cerrar tocando el fondo oscuro
-modalEl.addEventListener("click", (e) => {
-  if (e.target === modalEl) closeRecipe();
-});
-
-/***********************
- * 7) CHIPS (FILTROS)
- ***********************/
+/* ================= FILTER HANDLER ================= */
 document.getElementById("chips").addEventListener("click", (e) => {
-  const btn = e.target.closest(".chip");
-  if (!btn) return;
-
-  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-  btn.classList.add("active");
-
-  filtro = btn.dataset.filter;
-  render();
+  if (!e.target.classList.contains("chip")) return;
+  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  e.target.classList.add("active");
+  filtro = e.target.dataset.filter;
+  renderFeed();
 });
 
-/***********************
- * 8) INIT
- ***********************/
-(async function init(){
-  try {
-    if (!SHEET_PLATOS_URL.startsWith("http")) {
-      feedEl.innerHTML = `<div style="padding:14px;color:#6b7280;">
-        Falta configurar <b>SHEET_PLATOS_URL</b> en dispensia.js (URL publicada CSV).
-      </div>`;
-      return;
-    }
-
-    platos = await loadPlatos();
-    render();
-  } catch (err) {
-    console.error(err);
-    feedEl.innerHTML = `<div style="padding:14px;color:#6b7280;">
-      Error cargando Sheet. Revisa consola y que el CSV esté publicado.
-    </div>`;
-  }
-})();
+/* ================= INITIALIZE ================= */
+loadData();
