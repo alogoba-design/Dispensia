@@ -13,19 +13,19 @@
   <p>Planifica tus comidas</p>
 </header>
 
-<section class="chips">
-  <button class="chip active" onclick="setFilter('all',this)">Todas</button>
-  <button class="chip" onclick="setFilter('rapido',this)">Rápidas</button>
-  <button class="chip" onclick="setFilter('pollo',this)">Pollo</button>
-  <button class="chip" onclick="setFilter('criollo',this)">Criollo</button>
+<section class="chips" id="chips">
+  <button class="chip active" data-filter="all">Todas</button>
+  <button class="chip" data-filter="rapido">Rápidas</button>
+  <button class="chip" data-filter="criollo">Criollo</button>
+  <button class="chip" data-filter="pollo">Pollo</button>
 </section>
 
 <main id="feed" class="feed"></main>
 
-<!-- MODAL RECETA -->
-<div id="recipeModal" class="sheet">
+<!-- BOTTOM SHEET / MODAL -->
+<div id="recipeModal" class="sheet" aria-hidden="true">
   <div class="sheet-content">
-    <button class="sheet-close" onclick="closeRecipe()">✕</button>
+    <button class="sheet-close" id="closeBtn" aria-label="Cerrar">✕</button>
 
     <div class="media">
       <iframe id="videoFrame" allowfullscreen></iframe>
@@ -44,16 +44,18 @@
     <h3>Preparación</h3>
     <ol id="modalSteps"></ol>
 
-    <button class="primary-cta">Elegir plato</button>
+    <button class="primary-cta" id="chooseBtn">Elegir plato</button>
   </div>
 </div>
 
 <nav class="bottom-nav">
   <button class="active">🏠<span>Inicio</span></button>
-  <button>📅<span>Semana</span></button>
-  <button>🛒<span>Compras</span></button>
+  <button disabled>📅<span>Semana</span></button>
+  <button disabled>🛒<span>Compras</span></button>
 </nav>
 
+<!-- CSV Parser REAL (no rompe con comas) -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="dispensia.js"></script>
 </body>
 </html>
