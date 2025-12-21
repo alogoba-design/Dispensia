@@ -2,10 +2,15 @@
 body { margin:0; background:#f3f4f6; }
 
 .topbar {
-  background:#16a34a;
+  background:#22c55e;
   color:white;
   padding:14px;
   text-align:center;
+}
+
+#weekCounter {
+  font-size:13px;
+  opacity:.9;
 }
 
 .filters {
@@ -24,7 +29,7 @@ body { margin:0; background:#f3f4f6; }
 }
 
 .chip.active {
-  background:#16a34a;
+  background:#22c55e;
   color:white;
 }
 
@@ -67,41 +72,45 @@ body { margin:0; background:#f3f4f6; }
   padding:8px;
   border:none;
   border-radius:999px;
-  background:#16a34a;
+  background:#22c55e;
   color:white;
-  cursor:pointer;
 }
 
 .week-view {
   padding:16px;
 }
 
-.week-item {
+.week-list {
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+
+.week-list li {
   background:white;
-  border-radius:12px;
   padding:10px;
-  margin-bottom:8px;
-}
-
-.week-item img {
-  width:100%;
   border-radius:10px;
-  margin-top:6px;
+  margin-bottom:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-.week-remove {
-  margin-top:6px;
-  border:none;
+.week-list button {
   background:#fee2e2;
   color:#991b1b;
-  padding:6px;
+  border:none;
   border-radius:999px;
+  padding:4px 8px;
 }
+
+/* MODAL */
 
 .modal {
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.5);
+  background:rgba(0,0,0,.4);
+  backdrop-filter: blur(6px);
   display:none;
   align-items:center;
   justify-content:center;
@@ -114,12 +123,12 @@ body { margin:0; background:#f3f4f6; }
 
 .modal-box {
   background:white;
-  border-radius:16px;
-  max-width:520px;
+  border-radius:18px;
   width:100%;
-  padding:16px;
-  max-height:90vh;
+  max-width:520px;
+  max-height:75vh;
   overflow:auto;
+  padding:16px;
 }
 
 .close {
@@ -142,17 +151,33 @@ body { margin:0; background:#f3f4f6; }
   border:none;
 }
 
-.assign-grid {
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
+.modal-actions {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:12px;
 }
 
-.assign-grid button {
-  padding:6px;
-  border-radius:999px;
+.primary {
+  background:#22c55e;
+  color:white;
   border:none;
+  border-radius:999px;
+  padding:8px;
+}
+
+.danger {
+  background:#fee2e2;
+  color:#991b1b;
+  border:none;
+  border-radius:999px;
+  padding:8px;
+}
+
+.ghost {
   background:#e5e7eb;
-  cursor:pointer;
+  border:none;
+  border-radius:999px;
+  padding:8px;
 }
 

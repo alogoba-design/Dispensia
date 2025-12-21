@@ -5,14 +5,13 @@
   <title>DISPENSIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="dispensia.css" />
-
-  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
 <header class="topbar">
   <h1>DISPENSIA</h1>
+  <div id="weekCounter">0 platos en tu semana</div>
 </header>
 
 <section class="filters" id="chips">
@@ -24,10 +23,9 @@
 
 <main id="feed" class="feed"></main>
 
-<!-- Vista Semana -->
 <section class="week-view">
-  <h2>Tu semana</h2>
-  <div id="weekList"></div>
+  <h2>Mi semana</h2>
+  <ul id="weekList" class="week-list"></ul>
 </section>
 
 <!-- MODAL RECETA -->
@@ -40,7 +38,7 @@
     </div>
 
     <h2 id="modalName"></h2>
-    <p id="modalMeta">
+    <p class="meta">
       <span id="modalTime"></span> ·
       <span id="modalPortions"></span> ·
       <span id="modalDifficulty"></span>
@@ -52,8 +50,11 @@
     <h3>Preparación</h3>
     <ol id="modalSteps"></ol>
 
-    <h3>Agregar a un día</h3>
-    <div id="assignBtns" class="assign-grid"></div>
+    <div class="modal-actions">
+      <button id="addBtn" class="primary">Agregar a mi semana</button>
+      <button id="removeBtn" class="danger">Quitar de mi semana</button>
+      <button class="ghost" onclick="closeRecipe()">Volver al menú</button>
+    </div>
   </div>
 </div>
 
