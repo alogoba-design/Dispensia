@@ -144,3 +144,49 @@ body{
 .bottom-nav button.active{color:var(--green-dark);}
 .bottom-nav span{display:block;}
 .bottom-nav button:disabled{opacity:.4;}
+
+
+.week-view {
+  padding: 16px;
+  background: #f9fafb;
+}
+
+.week-view h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.week-item {
+  background: white;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.week-day {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.week-empty {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.week-item img {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+.week-remove {
+  margin-top: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
