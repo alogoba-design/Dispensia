@@ -1,3 +1,7 @@
+/*****************************************************
+ * DISPENSIA – FASE 3.1 Persistencia (localStorage)
+ *****************************************************/
+
 const PLATOS_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
 
@@ -12,12 +16,37 @@ const feed = document.getElementById("feed");
 const modal = document.getElementById("recipeModal");
 const weekList = document.getElementById("weekList");
 
-let platos=[], ingredientes=[], pasos=[];
-let filtro="all";
+let platos = [], ingredientes = [], pasos = [];
+let filtro = "all";
 
-const days=["L","M","X","J","V","S","D"];
-let week={L:null,M:null,X:null,J:null,V:null,S:null,D:null};
+const days = ["L","M","X","J","V","S","D"];
+const STORAGE_KEY = "dispensia_week";
 
+/* ================= STATE SEMANA ================= */
+let week = loadWeekFromStorage();
+
+/* ================= STORAGE ================= */
+function loadWeekFromStorage() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return emptyWeek();
+    }
+  }
+  return emptyWeek();
+}
+
+function saveWeekToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
+}
+
+function emptyWeek() {
+  return { L:null, M:null, X:null, J:null, V:null, S:null, D:null };
+}
+
+/* ================= CSV ================= */
 function loadCSV(url){
   return new Promise(res=>{
     Papa.parse(url,{
@@ -29,6 +58,7 @@ function loadCSV(url){
   });
 }
 
+/* ================= INIT ================= */
 async function init(){
   platos = await loadCSV(PLATOS_URL);
   ingredientes = await loadCSV(ING_URL);
@@ -37,6 +67,7 @@ async function init(){
   renderWeek();
 }
 
+/* ================= FILTER ================= */
 function render(){
   feed.innerHTML="";
   platos.filter(p=>{
@@ -58,19 +89,22 @@ function render(){
   });
 }
 
+/* ================= MODAL ================= */
 function openRecipe(cod){
   const p=platos.find(x=>x.codigo===cod);
+  if(!p) return;
+
   document.getElementById("modalName").textContent=p.nombre_plato;
   document.getElementById("modalTime").textContent=p["tiempo_preparacion(min)"]+" min";
   document.getElementById("modalPortions").textContent=p.porciones+" porciones";
   document.getElementById("modalDifficulty").textContent=p.dificultad;
   document.getElementById("videoFrame").src="https://www.youtube.com/embed/"+p.youtube_id;
 
-  document.getElementById("modalIngredients").innerHTML=
+  document.getElementById("modalIngredients").innerHTML =
     ingredientes.filter(i=>i.codigo_plato===cod)
       .map(i=>`<li>${i.ingrediente}</li>`).join("");
 
-  document.getElementById("modalSteps").innerHTML=
+  document.getElementById("modalSteps").innerHTML =
     pasos.filter(s=>s.codigo===cod)
       .sort((a,b)=>a.orden-b.orden)
       .map(s=>`<li>${s.indicacion}</li>`).join("");
@@ -80,7 +114,12 @@ function openRecipe(cod){
   days.forEach(d=>{
     const b=document.createElement("button");
     b.textContent=d;
-    b.onclick=()=>{week[d]=p; closeRecipe(); renderWeek();};
+    b.onclick=()=>{
+      week[d]=p;
+      saveWeekToStorage();
+      closeRecipe();
+      renderWeek();
+    };
     a.appendChild(b);
   });
 
@@ -92,6 +131,7 @@ function closeRecipe(){
   document.getElementById("videoFrame").src="";
 }
 
+/* ================= WEEK ================= */
 function renderWeek(){
   weekList.innerHTML="";
   days.forEach(d=>{
@@ -104,12 +144,19 @@ function renderWeek(){
         <strong>${d}</strong>
         <div>${week[d].nombre_plato}</div>
         <img src="${IMG_BASE+week[d].imagen_archivo}">
-        <button class="week-remove" onclick="week['${d}']=null;renderWeek()">Quitar</button>`;
+        <button class="week-remove" onclick="removeDay('${d}')">Quitar</button>`;
     }
     weekList.appendChild(w);
   });
 }
 
+function removeDay(d){
+  week[d]=null;
+  saveWeekToStorage();
+  renderWeek();
+}
+
+/* ================= FILTER UI ================= */
 document.getElementById("chips").onclick=e=>{
   if(!e.target.dataset.filter) return;
   document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
