@@ -5,42 +5,42 @@
   <title>DISPENSIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="dispensia.css" />
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
-<header class="app-header">
+<header class="topbar">
   <h1>DISPENSIA</h1>
-  <p>Planifica tus comidas</p>
 </header>
 
-<section class="chips" id="chips">
-  <button class="chip active" data-filter="all">Todas</button>
-  <button class="chip" data-filter="rapido">Rápidas</button>
-  <button class="chip" data-filter="criollo">Criollo</button>
-  <button class="chip" data-filter="pollo">Pollo</button>
+<section class="filters" id="chips">
+  <span class="chip active" data-filter="all">Todas</span>
+  <span class="chip" data-filter="rapido">Rápidas</span>
+  <span class="chip" data-filter="criollo">Criollo</span>
+  <span class="chip" data-filter="pollo">Pollo</span>
 </section>
 
 <main id="feed" class="feed"></main>
 
-
-<!-- Vista Semana (Planner HelloFresh) -->
-<section id="weekView" class="week-view">
+<!-- Vista Semana -->
+<section class="week-view">
   <h2>Tu semana</h2>
-  <div id="weekList" class="week-list"></div>
+  <div id="weekList"></div>
 </section>
 
+<!-- MODAL RECETA -->
+<div id="recipeModal" class="modal" aria-hidden="true">
+  <div class="modal-box">
+    <button class="close" onclick="closeRecipe()">✕</button>
 
-<!-- BOTTOM SHEET / MODAL -->
-<div id="recipeModal" class="sheet" aria-hidden="true">
-  <div class="sheet-content">
-    <button class="sheet-close" id="closeBtn" aria-label="Cerrar">✕</button>
-
-    <div class="media">
+    <div class="video-wrapper">
       <iframe id="videoFrame" allowfullscreen></iframe>
     </div>
 
     <h2 id="modalName"></h2>
-    <p class="meta">
+    <p id="modalMeta">
       <span id="modalTime"></span> ·
       <span id="modalPortions"></span> ·
       <span id="modalDifficulty"></span>
@@ -52,20 +52,11 @@
     <h3>Preparación</h3>
     <ol id="modalSteps"></ol>
 
-    <button class="primary-cta" id="chooseBtn">Elegir plato</button>
+    <h3>Agregar a un día</h3>
+    <div id="assignBtns" class="assign-grid"></div>
   </div>
 </div>
 
-<nav class="bottom-nav">
-  <button class="active">🏠<span>Inicio</span></button>
-  <button disabled>📅<span>Semana</span></button>
-  <button disabled>🛒<span>Compras</span></button>
-</nav>
-
-<!-- CSV Parser REAL (no rompe con comas) -->
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="dispensia.js"></script>
 </body>
 </html>
-
-
