@@ -1,5 +1,5 @@
 /*****************************************************
- * DISPENSIA – MODAL CORRECTO + CLICK FUERA CIERRA
+ * DISPENSIA – VERSIÓN ESTABLE
  *****************************************************/
 
 const PLATOS_URL =
@@ -12,51 +12,33 @@ const PASOS_URL =
 const IMG_BASE = "assets/img/";
 const feed = document.getElementById("feed");
 const modal = document.getElementById("recipeModal");
+const counter = document.getElementById("weekCounter");
 
 let platos = [];
 let ingredientes = [];
 let pasos = [];
+let week = [];
 let currentPlate = null;
 
 /* ===== CSV ===== */
-function fetchCSV(url) {
-  return new Promise((resolve, reject) => {
+function loadCSV(url) {
+  return new Promise(resolve => {
     Papa.parse(url, {
       download: true,
       header: true,
       skipEmptyLines: true,
-      complete: r => resolve(r.data),
-      error: err => reject(err)
+      complete: r => resolve(r.data)
     });
   });
 }
 
-/* ===== SKELETON ===== */
-function renderSkeletons(n = 8) {
-  feed.innerHTML = "";
-  for (let i = 0; i < n; i++) {
-    const s = document.createElement("div");
-    s.className = "card";
-    s.innerHTML = `
-      <div class="skeleton skeleton-img"></div>
-      <div class="card-body">
-        <div class="skeleton skeleton-title"></div>
-        <div class="skeleton skeleton-btn"></div>
-      </div>
-    `;
-    feed.appendChild(s);
-  }
-}
-
 /* ===== INIT ===== */
 document.addEventListener("DOMContentLoaded", async () => {
-  renderSkeletons();
-
-  platos = await fetchCSV(PLATOS_URL);
-  ingredientes = await fetchCSV(ING_URL);
-  pasos = await fetchCSV(PASOS_URL);
-
+  platos = await loadCSV(PLATOS_URL);
+  ingredientes = await loadCSV(ING_URL);
+  pasos = await loadCSV(PASOS_URL);
   renderFeed();
+  updateCounter();
 });
 
 /* ===== FEED ===== */
@@ -69,12 +51,18 @@ function renderFeed() {
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        <img src="${IMG_BASE + p.imagen_archivo}" alt="${p.nombre_plato}">
+        <img src="${IMG_BASE + p.imagen_archivo}">
         <div class="card-body">
           <h3>${p.nombre_plato}</h3>
-          <button onclick="openRecipe('${p.codigo}')">Elegir plato</button>
-        </div>
-      `;
+          <div class="card-actions">
+            <button class="btn-secondary" onclick="openRecipe('${p.codigo}')">
+              Ver receta
+            </button>
+            <button class="btn-primary" onclick="openRecipe('${p.codigo}')">
+              Elegir plato
+            </button>
+          </div>
+        </div>`;
       feed.appendChild(card);
     });
 }
@@ -87,20 +75,25 @@ window.openRecipe = function (codigo) {
   currentPlate = p;
 
   document.getElementById("modalName").textContent = p.nombre_plato;
-  document.getElementById("modalTime").textContent =
-    `${p["tiempo_preparacion(min)"]} min`;
-  document.getElementById("modalPortions").textContent =
-    `${p.porciones} porciones`;
-  document.getElementById("modalDifficulty").textContent =
-    p.dificultad || "";
+  document.getElementById("modalTime").textContent = `${p["tiempo_preparacion(min)"]} min`;
+  document.getElementById("modalPortions").textContent = `${p.porciones} porciones`;
+  document.getElementById("modalDifficulty").textContent = p.dificultad || "";
 
   document.getElementById("videoFrame").src =
-    p.youtube_id
-      ? `https://www.youtube.com/embed/${p.youtube_id}`
-      : "";
+    p.youtube_id ? `https://www.youtube.com/embed/${p.youtube_id}` : "";
 
-  renderIngredients(codigo);
-  renderSteps(codigo);
+  document.getElementById("modalIngredients").innerHTML =
+    ingredientes
+      .filter(i => i.codigo_plato === codigo)
+      .map(i => `<li>${i.ingrediente} (${i.cantidad || 1} ${i.unidad_medida || ""})</li>`)
+      .join("");
+
+  document.getElementById("modalSteps").innerHTML =
+    pasos
+      .filter(s => s.codigo === codigo)
+      .sort((a,b) => a.orden - b.orden)
+      .map(s => `<li>${s.indicacion}</li>`)
+      .join("");
 
   modal.setAttribute("aria-hidden", "false");
 };
@@ -108,53 +101,23 @@ window.openRecipe = function (codigo) {
 window.closeRecipe = function () {
   modal.setAttribute("aria-hidden", "true");
   document.getElementById("videoFrame").src = "";
-  currentPlate = null;
 };
 
-/* ✅ CLICK FUERA CIERRA MODAL */
-modal.addEventListener("click", (e) => {
-  if (e.target === modal) {
-    closeRecipe();
-  }
+/* Cerrar click fuera */
+modal.addEventListener("click", e => {
+  if (e.target === modal) closeRecipe();
 });
 
-/* ===== INGREDIENTES ===== */
-function normalizeCategory(tipo) {
-  if (!tipo) return "Otros";
-  const t = tipo.toLowerCase();
-  if (t.includes("verd")) return "Verduras";
-  if (t.includes("pollo") || t.includes("carne") || t.includes("pesc")) return "Carnes";
-  if (t.includes("lact")) return "Lácteos";
-  if (t.includes("abar")) return "Abarrotes";
-  return "Otros";
-}
+/* ===== SEMANA ===== */
+window.addCurrentPlate = function () {
+  if (!currentPlate) return;
+  if (!week.find(w => w.codigo === currentPlate.codigo)) {
+    week.push(currentPlate);
+    updateCounter();
+  }
+  closeRecipe();
+};
 
-function renderIngredients(codigo) {
-  const ul = document.getElementById("modalIngredients");
-  ul.innerHTML = "";
-
-  ingredientes
-    .filter(i => i.codigo_plato === codigo)
-    .forEach(i => {
-      const qty = i.cantidad || 1;
-      const unit = i.unidad_medida ? ` ${i.unidad_medida}` : "";
-      const li = document.createElement("li");
-      li.textContent = `${i.ingrediente} (${qty}${unit})`;
-      ul.appendChild(li);
-    });
-}
-
-/* ===== PASOS ===== */
-function renderSteps(codigo) {
-  const ol = document.getElementById("modalSteps");
-  ol.innerHTML = "";
-
-  pasos
-    .filter(p => p.codigo === codigo)
-    .sort((a,b) => Number(a.orden) - Number(b.orden))
-    .forEach(p => {
-      const li = document.createElement("li");
-      li.textContent = p.indicacion;
-      ol.appendChild(li);
-    });
+function updateCounter() {
+  counter.textContent = `${week.length} platos en tu semana`;
 }
