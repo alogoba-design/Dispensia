@@ -1,5 +1,5 @@
 /*****************************************************
- * DISPENSIA – App UX refinado
+ * DISPENSIA – App UX refinado + Bottom Nav funcional
  *****************************************************/
 
 const PLATOS_URL =
@@ -24,7 +24,7 @@ let pasos = [];
 let week = loadWeek();
 let currentPlate = null;
 
-/* CSV */
+/* ================= CSV ================= */
 function fetchCSV(url) {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
@@ -37,20 +37,46 @@ function fetchCSV(url) {
   });
 }
 
-/* INIT */
+/* ================= NAV (BOTTOM) ================= */
+/**
+ * index.html llama: switchView('home'|'week'|'shopping', this)
+ */
+window.switchView = function (view, btn) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  const target = document.getElementById(`view-${view}`);
+  if (target) target.classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+
+  // opcional: sube al inicio de la vista (se siente más "app")
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", async () => {
   platos = await fetchCSV(PLATOS_URL);
   ingredientes = await fetchCSV(ING_URL);
   pasos = await fetchCSV(PASOS_URL);
+
   renderFeed();
   renderWeek();
   renderShopping();
   updateCounter();
+
+  // Asegura que INICIO sea visible al cargar
+  const homeView = document.getElementById("view-home");
+  if (homeView) {
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    homeView.classList.add("active");
+  }
 });
 
-/* FEED */
+/* ================= FEED ================= */
 function renderFeed() {
+  if (!feed) return;
   feed.innerHTML = "";
+
   platos
     .filter(p => p.etapa === "1" || p.etapa === "2")
     .forEach(p => {
@@ -67,7 +93,7 @@ function renderFeed() {
     });
 }
 
-/* MODAL */
+/* ================= MODAL ================= */
 window.openRecipe = function (codigo) {
   const p = platos.find(x => x.codigo === codigo);
   if (!p) return;
@@ -93,15 +119,17 @@ window.closeRecipe = function () {
   currentPlate = null;
 };
 
-/* INGREDIENTES AGRUPADOS */
+/* ================= INGREDIENTES (pocas categorías + unidad) ================= */
 function normalizeCategory(tipo) {
   if (!tipo) return "Otros";
   const t = tipo.toLowerCase();
+
   if (t.includes("verd")) return "Verduras";
   if (t.includes("carne") || t.includes("pollo") || t.includes("pesc")) return "Carnes";
   if (t.includes("lact")) return "Lácteos";
-  if (t.includes("abar") || t.includes("grano")) return "Abarrotes";
-  if (t.includes("espec")) return "Especias";
+  if (t.includes("abar") || t.includes("grano") || t.includes("pasta")) return "Abarrotes";
+  if (t.includes("espec") || t.includes("condim")) return "Especias";
+
   return "Otros";
 }
 
@@ -125,20 +153,23 @@ function renderIngredients(codigo) {
     ul.appendChild(title);
 
     items.forEach(i => {
+      const qty = (i.cantidad && String(i.cantidad).trim() !== "") ? i.cantidad : 1;
+      const unit = (i.unidad_medida || "").trim();
+      const unitTxt = unit ? ` ${unit}` : "";
       const li = document.createElement("li");
-      li.textContent = `– ${i.ingrediente} (${i.cantidad || 1} ${i.unidad_medida || ""})`;
+      li.textContent = `– ${i.ingrediente} (${qty}${unitTxt})`;
       ul.appendChild(li);
     });
   });
 }
 
-/* PASOS */
+/* ================= PASOS ================= */
 function renderSteps(codigo) {
   const ol = document.getElementById("modalSteps");
   ol.innerHTML = "";
   pasos
     .filter(p => p.codigo === codigo)
-    .sort((a,b)=>a.orden-b.orden)
+    .sort((a, b) => Number(a.orden) - Number(b.orden))
     .forEach(p => {
       const li = document.createElement("li");
       li.textContent = p.indicacion;
@@ -146,7 +177,7 @@ function renderSteps(codigo) {
     });
 }
 
-/* WEEK */
+/* ================= SEMANA ================= */
 window.addCurrentPlate = function () {
   if (!currentPlate) return;
   if (!week.find(w => w.codigo === currentPlate.codigo)) {
@@ -154,9 +185,14 @@ window.addCurrentPlate = function () {
     saveWeek();
   }
   closeRecipe();
+
+  // Opcional: al agregar, te lleva a Semana (se siente "app")
+  const weekBtn = document.querySelector(".bottom-nav .nav-item:nth-child(2)");
+  if (weekBtn) switchView("week", weekBtn);
 };
 
 function renderWeek() {
+  if (!weekList) return;
   weekList.innerHTML = "";
   if (!week.length) {
     weekList.innerHTML = `<li style="opacity:.6">Aún no has agregado platos</li>`;
@@ -177,38 +213,61 @@ window.removeFromWeek = function (codigo) {
   saveWeek();
 };
 
-/* SHOPPING */
+/* ================= COMPRAS (pocas categorías + unidad) ================= */
 function renderShopping() {
+  if (!shoppingList) return;
   shoppingList.innerHTML = "";
-  const map = {};
+
+  if (!week.length) {
+    shoppingList.innerHTML = `<div style="opacity:.6; padding:16px;">Agrega platos para ver tu lista.</div>`;
+    return;
+  }
+
+  const grouped = {}; // cat -> name -> {qty, unit}
 
   week.forEach(p => {
     ingredientes
       .filter(i => i.codigo_plato === p.codigo)
       .forEach(i => {
         const cat = normalizeCategory(i.tipo_ingrediente);
-        if (!map[cat]) map[cat] = {};
-        const key = i.ingrediente;
-        map[cat][key] =
-          (map[cat][key] || 0) + (Number(i.cantidad) || 1);
+        const name = (i.ingrediente || "").trim();
+        if (!name) return;
+
+        const qty = (i.cantidad && String(i.cantidad).trim() !== "") ? Number(i.cantidad) : 1;
+        const unit = (i.unidad_medida || "").trim();
+
+        if (!grouped[cat]) grouped[cat] = {};
+        if (!grouped[cat][name]) grouped[cat][name] = { qty: 0, unit };
+
+        grouped[cat][name].qty += isNaN(qty) ? 1 : qty;
+
+        // Si viene unidad y antes no había, guárdala
+        if (!grouped[cat][name].unit && unit) grouped[cat][name].unit = unit;
       });
   });
 
-  Object.entries(map).forEach(([cat, items]) => {
+  Object.entries(grouped).forEach(([cat, items]) => {
     const block = document.createElement("div");
     block.className = "shopping-category";
-    block.innerHTML = `<div class="shopping-category-title">${cat}</div>`;
-    Object.entries(items).forEach(([name, qty]) => {
+
+    const title = document.createElement("div");
+    title.className = "shopping-category-title";
+    title.textContent = cat;
+    block.appendChild(title);
+
+    Object.entries(items).forEach(([name, data]) => {
       const row = document.createElement("div");
       row.className = "shopping-item";
-      row.innerHTML = `<span>${name}</span><span>${qty}</span>`;
+      const unitTxt = data.unit ? ` ${data.unit}` : "";
+      row.innerHTML = `<span>${name}</span><span>${data.qty}${unitTxt}</span>`;
       block.appendChild(row);
     });
+
     shoppingList.appendChild(block);
   });
 }
 
-/* STORAGE */
+/* ================= STORAGE ================= */
 function saveWeek() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
   renderWeek();
@@ -222,5 +281,5 @@ function loadWeek() {
 }
 
 function updateCounter() {
-  weekCounter.textContent = `${week.length} platos en tu semana`;
+  if (weekCounter) weekCounter.textContent = `${week.length} platos en tu semana`;
 }
