@@ -3,106 +3,181 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+:root{
+  --hf-green: #6bcf9b;
+  --hf-green-dark:#16a34a;
+  --text:#111827;
+  --muted:#6b7280;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --shadow: 0 8px 22px rgba(0,0,0,.12);
+  --shadow-strong: 0 14px 30px rgba(0,0,0,.16);
+}
+
 body {
   margin: 0;
-  background: #f3f4f6;
-  padding-bottom: 40px;
+  background: var(--bg);
+  padding-bottom: 70px;
+  color: var(--text);
 }
 
-/* ===== CABECERA ===== */
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: white;
-  padding: 14px 16px;
-  box-shadow: 0 4px 14px rgba(0,0,0,.1);
+/* TOPBAR */
+.topbar {
+  background: var(--hf-green);
+  color: white;
+  padding: 14px;
+  text-align: center;
 }
 
-.app-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #14532d;
+#weekCounter {
+  font-size: 13px;
+  opacity: 0.95;
+  display:inline-block;
+  transform-origin: center;
+  transition: transform .18s ease;
+}
+#weekCounter.bump{
+  transform: scale(1.08);
 }
 
-.week-counter {
-  margin-top: 4px;
-  font-size: 14px;
-  color: #374151;
-}
+/* VIEWS */
+.view { display: none; }
+.view.active { display: block; }
 
-/* ===== FEED ===== */
+/* FEED */
 .feed {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 18px;
-  padding: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 16px;
 }
 
-/* ===== CARD ===== */
+/* CARD */
 .card {
-  background: white;
-  border-radius: 18px;
+  background: var(--card);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 8px 22px rgba(0,0,0,.12);
+  box-shadow: var(--shadow);
+  transform: translateY(0);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-strong);
 }
 
 .card img {
   width: 100%;
-  height: 170px;
+  height: 150px;
   object-fit: cover;
 }
 
 .card-body {
-  padding: 14px;
+  padding: 10px;
 }
 
 .card-body h3 {
-  margin: 0 0 14px;
-  font-size: 16px;
-}
-
-/* ===== BOTONES GRANDES ===== */
-.card-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-secondary {
-  flex: 1;
-  padding: 14px;
-  border-radius: 999px;
-  border: none;
-  background: #e5e7eb;
-  color: #111827;
+  margin: 0 0 8px;
   font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
-.btn-primary {
-  flex: 1;
-  padding: 14px;
-  border-radius: 999px;
+.card-body button {
+  width: 100%;
+  padding: 10px;
   border: none;
-  background: #22c55e;
+  border-radius: 999px;
+  background: var(--hf-green);
   color: white;
-  font-size: 15px;
-  font-weight: 600;
   cursor: pointer;
 }
 
-/* ===== MODAL ===== */
+/* ===================== */
+/* SKELETON LOADING 🔥   */
+/* ===================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.6),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.card.skeleton-card {
+  box-shadow: none;
+}
+
+.skeleton-img {
+  height: 150px;
+}
+
+.skeleton-title {
+  height: 16px;
+  width: 70%;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.skeleton-btn {
+  height: 36px;
+  width: 100%;
+  border-radius: 999px;
+}
+
+/* WEEK */
+.week-list {
+  list-style: none;
+  padding: 16px;
+  margin: 0;
+}
+
+/* SHOPPING */
+.shopping-category {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 12px;
+  margin: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.shopping-category-title {
+  font-weight: 700;
+  color: var(--hf-green-dark);
+  margin-bottom: 8px;
+}
+
+/* MODAL */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.55);
-  backdrop-filter: blur(6px);
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(8px);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 12px;
   opacity: 0;
   pointer-events: none;
+  transition: opacity .18s ease;
 }
 
 .modal[aria-hidden="false"] {
@@ -110,28 +185,17 @@ body {
   pointer-events: auto;
 }
 
-.modal-content {
-  background: white;
-  width: 90%;
-  max-width: 900px;
-  max-height: 80vh;
-  overflow-y: auto;
+.modal-box {
+  background: var(--card);
   border-radius: 18px;
+  width: 92%;
+  max-width: 900px;
+  height: 80vh;
+  overflow-y: auto;
   padding: 20px;
-  position: relative;
 }
 
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  border: none;
-  background: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-/* ===== VIDEO ===== */
+/* VIDEO */
 .video-wrapper {
   position: relative;
   width: 100%;
@@ -139,7 +203,7 @@ body {
   background: black;
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .video-wrapper iframe {
@@ -150,23 +214,32 @@ body {
   border: none;
 }
 
-/* ===== LISTAS ===== */
-.ingredients-list li,
-.steps-list li {
-  font-size: 14px;
-  margin-bottom: 6px;
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #e5e7eb;
+  display: flex;
 }
 
-/* ===== BOTÓN SEMANA ===== */
-.add-week-btn {
-  margin-top: 16px;
-  width: 100%;
-  padding: 16px;
-  border-radius: 999px;
+.nav-item {
+  flex: 1;
+  background: none;
   border: none;
-  background: #16a34a;
-  color: white;
-  font-size: 16px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.nav-item.active {
+  color: var(--hf-green-dark);
   font-weight: 700;
-  cursor: pointer;
 }
