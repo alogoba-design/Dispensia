@@ -76,17 +76,20 @@ body { margin:0; background:#f3f4f6; }
   color:white;
 }
 
-.week-view {
+.week-view,
+.shopping-view {
   padding:16px;
 }
 
-.week-list {
+.week-list,
+.shopping-list {
   list-style:none;
   padding:0;
   margin:0;
 }
 
-.week-list li {
+.week-list li,
+.shopping-list li {
   background:white;
   padding:10px;
   border-radius:10px;

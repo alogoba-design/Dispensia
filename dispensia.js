@@ -16,15 +16,18 @@ let week = loadWeek();
 
 const feed = document.getElementById("feed");
 const weekList = document.getElementById("weekList");
+const shoppingList = document.getElementById("shoppingList");
 const weekCounter = document.getElementById("weekCounter");
 const modal = document.getElementById("recipeModal");
 
 function loadWeek(){
   return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 }
+
 function saveWeek(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
   updateCounter();
+  renderShopping();
 }
 
 function loadCSV(url){
@@ -39,6 +42,7 @@ async function init(){
   pasos = await loadCSV(PASOS_URL);
   render();
   renderWeek();
+  renderShopping();
   updateCounter();
 }
 
@@ -119,6 +123,24 @@ function remove(cod){
   week = week.filter(w=>w.codigo!==cod);
   saveWeek();
   renderWeek();
+}
+
+function renderShopping(){
+  shoppingList.innerHTML="";
+  const map={};
+
+  week.forEach(p=>{
+    ingredientes.filter(i=>i.codigo_plato===p.codigo).forEach(i=>{
+      if(!map[i.ingrediente]) map[i.ingrediente]=0;
+      map[i.ingrediente]+=Number(i.cantidad)||1;
+    });
+  });
+
+  Object.entries(map).forEach(([name,qty])=>{
+    const li=document.createElement("li");
+    li.textContent=`${name} — ${qty}`;
+    shoppingList.appendChild(li);
+  });
 }
 
 function updateCounter(){
