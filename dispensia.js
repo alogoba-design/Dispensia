@@ -1,5 +1,5 @@
 /*****************************************************
- * DISPENSIA – versión estable simplificada
+ * DISPENSIA – Lista de compras PRO (categorías)
  *****************************************************/
 
 const PLATOS_URL =
@@ -168,28 +168,54 @@ window.removeFromWeek = function (codigo) {
   saveWeek();
 };
 
-/* SHOPPING */
+/* SHOPPING PRO */
 function renderShopping() {
   shoppingList.innerHTML = "";
-  const map = {};
 
-  week.forEach(p => {
-    ingredientes.filter(i => i.codigo_plato === p.codigo)
-      .forEach(i => {
-        map[i.ingrediente] = (map[i.ingrediente] || 0) + (Number(i.cantidad) || 1);
-      });
-  });
-
-  const entries = Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0]));
-  if (!entries.length) {
-    shoppingList.innerHTML = `<li style="color:#6b7280">Agrega platos para ver tu lista.</li>`;
+  if (week.length === 0) {
+    shoppingList.innerHTML =
+      `<div style="color:#6b7280">Agrega platos para ver tu lista.</div>`;
     return;
   }
 
-  entries.forEach(([name, qty]) => {
-    const li = document.createElement("li");
-    li.textContent = `${name} — ${qty}`;
-    shoppingList.appendChild(li);
+  const grouped = {};
+
+  week.forEach(p => {
+    ingredientes
+      .filter(i => i.codigo_plato === p.codigo)
+      .forEach(i => {
+        const categoria = (i.tipo_ingrediente || "Otros").toUpperCase();
+        const nombre = i.ingrediente;
+        const unidad = i.unidad_medida || "";
+        const cantidad = Number(i.cantidad) || 1;
+
+        if (!grouped[categoria]) grouped[categoria] = {};
+
+        if (!grouped[categoria][nombre]) {
+          grouped[categoria][nombre] = { cantidad: 0, unidad };
+        }
+
+        grouped[categoria][nombre].cantidad += cantidad;
+      });
+  });
+
+  Object.entries(grouped).forEach(([categoria, items]) => {
+    const block = document.createElement("div");
+    block.className = "shopping-category";
+
+    block.innerHTML = `<div class="shopping-category-title">${categoria}</div>`;
+
+    Object.entries(items).forEach(([nombre, data]) => {
+      const row = document.createElement("div");
+      row.className = "shopping-item";
+      row.innerHTML = `
+        <span>${nombre}</span>
+        <span>${data.cantidad} ${data.unidad}</span>
+      `;
+      block.appendChild(row);
+    });
+
+    shoppingList.appendChild(block);
   });
 }
 
