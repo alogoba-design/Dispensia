@@ -92,12 +92,6 @@ window.openRecipe=function(cod){
   document.getElementById("modalSteps").innerHTML=
     pasos.filter(s=>s.codigo===cod).sort((a,b)=>a.orden-b.orden).map(s=>`<li>${s.indicacion}</li>`).join("");
 
-  const addBtn=document.getElementById("addBtn");
-  const removeBtn=document.getElementById("removeBtn");
-  const inWeek=week.some(w=>w.codigo===p.codigo);
-  addBtn.classList.toggle("added", inWeek);
-  removeBtn.style.display=inWeek?"block":"none";
-
   modal.setAttribute("aria-hidden","false");
 };
 
