@@ -74,6 +74,7 @@ body { margin:0; background:#f3f4f6; }
   border-radius:999px;
   background:#22c55e;
   color:white;
+  cursor:pointer;
 }
 
 .week-view,
@@ -105,10 +106,10 @@ body { margin:0; background:#f3f4f6; }
   border:none;
   border-radius:999px;
   padding:4px 8px;
+  cursor:pointer;
 }
 
 /* MODAL */
-
 .modal {
   position:fixed;
   inset:0;
@@ -139,6 +140,7 @@ body { margin:0; background:#f3f4f6; }
   background:none;
   border:none;
   font-size:18px;
+  cursor:pointer;
 }
 
 .video-wrapper {
@@ -167,6 +169,7 @@ body { margin:0; background:#f3f4f6; }
   border:none;
   border-radius:999px;
   padding:8px;
+  cursor:pointer;
 }
 
 .danger {
@@ -175,6 +178,7 @@ body { margin:0; background:#f3f4f6; }
   border:none;
   border-radius:999px;
   padding:8px;
+  cursor:pointer;
 }
 
 .ghost {
@@ -182,5 +186,6 @@ body { margin:0; background:#f3f4f6; }
   border:none;
   border-radius:999px;
   padding:8px;
+  cursor:pointer;
 }
 
