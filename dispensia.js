@@ -1,5 +1,5 @@
 /*****************************************************
- * DISPENSIA – navegación tipo app (bottom nav)
+ * DISPENSIA – App UX refinado
  *****************************************************/
 
 const PLATOS_URL =
@@ -21,11 +21,10 @@ const modal = document.getElementById("recipeModal");
 let platos = [];
 let ingredientes = [];
 let pasos = [];
-let filtro = "all";
 let week = loadWeek();
 let currentPlate = null;
 
-/* CSV loader */
+/* CSV */
 function fetchCSV(url) {
   return new Promise((resolve, reject) => {
     Papa.parse(url, {
@@ -39,41 +38,33 @@ function fetchCSV(url) {
 }
 
 /* INIT */
-async function init() {
+document.addEventListener("DOMContentLoaded", async () => {
   platos = await fetchCSV(PLATOS_URL);
   ingredientes = await fetchCSV(ING_URL);
   pasos = await fetchCSV(PASOS_URL);
-  render();
+  renderFeed();
   renderWeek();
   renderShopping();
   updateCounter();
-}
-document.addEventListener("DOMContentLoaded", init);
+});
 
-/* NAV */
-window.switchView = function (view, btn) {
-  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-  document.getElementById(`view-${view}`).classList.add("active");
-
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-};
-
-/* RENDER FEED */
-function render() {
+/* FEED */
+function renderFeed() {
   feed.innerHTML = "";
-  platos.filter(p => p.etapa === "1" || p.etapa === "2").forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${IMG_BASE + p.imagen_archivo}">
-      <div class="card-body">
-        <h3>${p.nombre_plato}</h3>
-        <button onclick="openRecipe('${p.codigo}')">Elegir plato</button>
-      </div>
-    `;
-    feed.appendChild(card);
-  });
+  platos
+    .filter(p => p.etapa === "1" || p.etapa === "2")
+    .forEach(p => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${IMG_BASE + p.imagen_archivo}">
+        <div class="card-body">
+          <h3>${p.nombre_plato}</h3>
+          <button onclick="openRecipe('${p.codigo}')">Elegir plato</button>
+        </div>
+      `;
+      feed.appendChild(card);
+    });
 }
 
 /* MODAL */
@@ -84,20 +75,14 @@ window.openRecipe = function (codigo) {
 
   document.getElementById("modalName").textContent = p.nombre_plato;
   document.getElementById("modalTime").textContent = `${p["tiempo_preparacion(min)"]} min`;
-  document.getElementById("modalPortions").textContent = `${p.porciones}`;
+  document.getElementById("modalPortions").textContent = `${p.porciones} porciones`;
   document.getElementById("modalDifficulty").textContent = p.dificultad || "";
 
   document.getElementById("videoFrame").src =
     p.youtube_id ? `https://www.youtube.com/embed/${p.youtube_id}` : "";
 
-  document.getElementById("modalIngredients").innerHTML =
-    ingredientes.filter(i => i.codigo_plato === codigo)
-      .map(i => `<li>${i.ingrediente}</li>`).join("");
-
-  document.getElementById("modalSteps").innerHTML =
-    pasos.filter(s => s.codigo === codigo)
-      .sort((a,b)=>a.orden-b.orden)
-      .map(s => `<li>${s.indicacion}</li>`).join("");
+  renderIngredients(codigo);
+  renderSteps(codigo);
 
   modal.setAttribute("aria-hidden", "false");
 };
@@ -108,6 +93,60 @@ window.closeRecipe = function () {
   currentPlate = null;
 };
 
+/* INGREDIENTES AGRUPADOS */
+function normalizeCategory(tipo) {
+  if (!tipo) return "Otros";
+  const t = tipo.toLowerCase();
+  if (t.includes("verd")) return "Verduras";
+  if (t.includes("carne") || t.includes("pollo") || t.includes("pesc")) return "Carnes";
+  if (t.includes("lact")) return "Lácteos";
+  if (t.includes("abar") || t.includes("grano")) return "Abarrotes";
+  if (t.includes("espec")) return "Especias";
+  return "Otros";
+}
+
+function renderIngredients(codigo) {
+  const ul = document.getElementById("modalIngredients");
+  ul.innerHTML = "";
+
+  const grouped = {};
+
+  ingredientes
+    .filter(i => i.codigo_plato === codigo)
+    .forEach(i => {
+      const cat = normalizeCategory(i.tipo_ingrediente);
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(i);
+    });
+
+  Object.entries(grouped).forEach(([cat, items]) => {
+    const title = document.createElement("li");
+    title.innerHTML = `<strong>${cat}</strong>`;
+    ul.appendChild(title);
+
+    items.forEach(i => {
+      const li = document.createElement("li");
+      li.textContent = `– ${i.ingrediente} (${i.cantidad || 1} ${i.unidad_medida || ""})`;
+      ul.appendChild(li);
+    });
+  });
+}
+
+/* PASOS */
+function renderSteps(codigo) {
+  const ol = document.getElementById("modalSteps");
+  ol.innerHTML = "";
+  pasos
+    .filter(p => p.codigo === codigo)
+    .sort((a,b)=>a.orden-b.orden)
+    .forEach(p => {
+      const li = document.createElement("li");
+      li.textContent = p.indicacion;
+      ol.appendChild(li);
+    });
+}
+
+/* WEEK */
 window.addCurrentPlate = function () {
   if (!currentPlate) return;
   if (!week.find(w => w.codigo === currentPlate.codigo)) {
@@ -117,17 +156,18 @@ window.addCurrentPlate = function () {
   closeRecipe();
 };
 
-/* WEEK */
 function renderWeek() {
   weekList.innerHTML = "";
   if (!week.length) {
-    weekList.innerHTML = `<li style="color:#6b7280">Aún no has agregado platos.</li>`;
+    weekList.innerHTML = `<li style="opacity:.6">Aún no has agregado platos</li>`;
     return;
   }
   week.forEach(p => {
     const li = document.createElement("li");
-    li.innerHTML = `${p.nombre_plato}
-      <button onclick="removeFromWeek('${p.codigo}')">Quitar</button>`;
+    li.innerHTML = `
+      ${p.nombre_plato}
+      <button onclick="removeFromWeek('${p.codigo}')">Quitar</button>
+    `;
     weekList.appendChild(li);
   });
 }
@@ -140,19 +180,21 @@ window.removeFromWeek = function (codigo) {
 /* SHOPPING */
 function renderShopping() {
   shoppingList.innerHTML = "";
-  const grouped = {};
+  const map = {};
 
   week.forEach(p => {
-    ingredientes.filter(i => i.codigo_plato === p.codigo)
+    ingredientes
+      .filter(i => i.codigo_plato === p.codigo)
       .forEach(i => {
-        const cat = (i.tipo_ingrediente || "Otros").toUpperCase();
-        if (!grouped[cat]) grouped[cat] = {};
-        grouped[cat][i.ingrediente] =
-          (grouped[cat][i.ingrediente] || 0) + (Number(i.cantidad) || 1);
+        const cat = normalizeCategory(i.tipo_ingrediente);
+        if (!map[cat]) map[cat] = {};
+        const key = i.ingrediente;
+        map[cat][key] =
+          (map[cat][key] || 0) + (Number(i.cantidad) || 1);
       });
   });
 
-  Object.entries(grouped).forEach(([cat, items]) => {
+  Object.entries(map).forEach(([cat, items]) => {
     const block = document.createElement("div");
     block.className = "shopping-category";
     block.innerHTML = `<div class="shopping-category-title">${cat}</div>`;
@@ -166,8 +208,12 @@ function renderShopping() {
   });
 }
 
-function updateCounter() {
-  weekCounter.textContent = `${week.length} platos en tu semana`;
+/* STORAGE */
+function saveWeek() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
+  renderWeek();
+  renderShopping();
+  updateCounter();
 }
 
 function loadWeek() {
@@ -175,9 +221,6 @@ function loadWeek() {
   catch { return []; }
 }
 
-function saveWeek() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
-  renderWeek();
-  renderShopping();
-  updateCounter();
+function updateCounter() {
+  weekCounter.textContent = `${week.length} platos en tu semana`;
 }

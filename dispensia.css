@@ -6,7 +6,7 @@
 body {
   margin: 0;
   background: #f3f4f6;
-  padding-bottom: 70px; /* espacio para bottom nav */
+  padding-bottom: 70px;
 }
 
 /* TOPBAR */
@@ -25,9 +25,7 @@ body {
 /* VIEWS */
 .view {
   display: none;
-  padding-bottom: 20px;
 }
-
 .view.active {
   display: block;
 }
@@ -83,6 +81,10 @@ body {
   padding: 10px;
 }
 
+.card-body h3 {
+  margin: 0 0 6px;
+}
+
 .card-body button {
   width: 100%;
   padding: 8px;
@@ -130,20 +132,14 @@ body {
 .shopping-category-title {
   font-weight: 600;
   color: #16a34a;
-}
-
-.shopping-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 4px 0;
+  margin-bottom: 6px;
 }
 
 /* MODAL */
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.4);
+  background: rgba(0,0,0,.45);
   backdrop-filter: blur(6px);
   display: none;
   align-items: center;
@@ -165,19 +161,48 @@ body {
   padding: 20px;
 }
 
-.close {
-  float: right;
-  border: none;
-  background: none;
-  font-size: 18px;
+/* 🔥 VIDEO PERFECTO 16:9 */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 */
+  background: black;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
 }
 
-/* VIDEO */
-.video-wrapper {
+.video-wrapper iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  aspect-ratio: 16/9;
-  background: black;
-  margin-bottom: 10px;
+  height: 100%;
+  border: none;
+}
+
+/* MODAL ACTIONS */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.primary {
+  flex: 1;
+  background: #6bcf9b;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.ghost {
+  flex: 1;
+  background: #e5e7eb;
+  border: none;
+  border-radius: 999px;
+  padding: 10px;
 }
 
 /* BOTTOM NAV */
@@ -207,8 +232,4 @@ body {
 .nav-item.active {
   color: #16a34a;
   font-weight: 600;
-}
-
-.nav-item span {
-  font-size: 11px;
 }
