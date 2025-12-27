@@ -85,7 +85,43 @@ function renderFeed() {
 }
 
 /* ================= MODAL (ya existente) ================= */
-window.openRecipe = function(){ /* NO TOCAMOS AQUÍ */ }
+/* ================= MODAL ================= */
+window.openRecipe = function (codigo) {
+  const p = platos.find(x => x.codigo === codigo);
+  if (!p) return;
+
+  currentPlate = p;
+
+  document.getElementById("modalName").textContent = p.nombre_plato;
+  document.getElementById("modalTime").textContent =
+    `${p["tiempo_preparacion(min)"]} min`;
+  document.getElementById("modalPortions").textContent =
+    `${p.porciones} porciones`;
+  document.getElementById("modalDifficulty").textContent =
+    p.dificultad || "";
+
+  document.getElementById("videoFrame").src =
+    p.youtube_id
+      ? `https://www.youtube.com/embed/${p.youtube_id}`
+      : "";
+
+  renderIngredients(codigo);
+  renderSteps(codigo);
+
+  document
+    .getElementById("recipeModal")
+    .setAttribute("aria-hidden", "false");
+};
+
+window.closeRecipe = function () {
+  document
+    .getElementById("recipeModal")
+    .setAttribute("aria-hidden", "true");
+
+  document.getElementById("videoFrame").src = "";
+  currentPlate = null;
+};
+
 
 /* ================= STORAGE ================= */
 function loadWeek() {
