@@ -23,12 +23,8 @@ body {
 }
 
 /* VIEWS */
-.view {
-  display: none;
-}
-.view.active {
-  display: block;
-}
+.view { display: none; }
+.view.active { display: block; }
 
 .view-title {
   padding: 16px;
@@ -50,7 +46,6 @@ body {
   font-size: 13px;
   cursor: pointer;
 }
-
 .chip.active {
   background: #6bcf9b;
   color: white;
@@ -132,7 +127,24 @@ body {
 .shopping-category-title {
   font-weight: 600;
   color: #16a34a;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.shopping-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.shopping-item span:last-child {
+  background: #f3f4f6;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* MODAL */
@@ -161,11 +173,11 @@ body {
   padding: 20px;
 }
 
-/* 🔥 VIDEO PERFECTO 16:9 */
+/* VIDEO 16:9 PERFECTO */
 .video-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 56.25%; /* 16:9 */
+  padding-top: 56.25%;
   background: black;
   border-radius: 12px;
   overflow: hidden;
