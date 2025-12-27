@@ -1,5 +1,5 @@
 /*****************************************************
- * DISPENSIA – App estable (suma por nombre + unidad)
+ * DISPENSIA – Microinteracciones (HF-like) + estabilidad
  *****************************************************/
 
 const PLATOS_URL =
@@ -23,6 +23,23 @@ let ingredientes = [];
 let pasos = [];
 let week = loadWeek();
 let currentPlate = null;
+
+/* ===== Toast ===== */
+let toastEl = null;
+function ensureToast(){
+  if (toastEl) return;
+  toastEl = document.createElement("div");
+  toastEl.className = "toast";
+  toastEl.id = "toast";
+  document.body.appendChild(toastEl);
+}
+function showToast(msg){
+  ensureToast();
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>toastEl.classList.remove("show"), 1800);
+}
 
 /* CSV */
 function fetchCSV(url) {
@@ -72,7 +89,7 @@ function renderFeed() {
       const card = document.createElement("div");
       card.className = "card";
       card.innerHTML = `
-        <img src="${IMG_BASE + p.imagen_archivo}">
+        <img src="${IMG_BASE + p.imagen_archivo}" alt="${p.nombre_plato}">
         <div class="card-body">
           <h3>${p.nombre_plato}</h3>
           <button onclick="openRecipe('${p.codigo}')">Elegir plato</button>
@@ -82,7 +99,7 @@ function renderFeed() {
     });
 }
 
-/* MODAL */
+/* MODAL open/close (animado vía CSS) */
 window.openRecipe = function (codigo) {
   const p = platos.find(x => x.codigo === codigo);
   if (!p) return;
@@ -108,7 +125,12 @@ window.closeRecipe = function () {
   currentPlate = null;
 };
 
-/* INGREDIENTES */
+/* Click fuera del modal para cerrar (micro UX HF) */
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) closeRecipe();
+});
+
+/* INGREDIENTES: pocas categorías */
 function normalizeCategory(tipo) {
   if (!tipo) return "Otros";
   const t = tipo.toLowerCase();
@@ -116,7 +138,7 @@ function normalizeCategory(tipo) {
   if (t.includes("carne") || t.includes("pollo") || t.includes("pesc")) return "Carnes";
   if (t.includes("lact")) return "Lácteos";
   if (t.includes("abar") || t.includes("grano") || t.includes("pasta")) return "Abarrotes";
-  if (t.includes("espec")) return "Especias";
+  if (t.includes("espec") || t.includes("condim")) return "Especias";
   return "Otros";
 }
 
@@ -125,7 +147,6 @@ function renderIngredients(codigo) {
   ul.innerHTML = "";
 
   const grouped = {};
-
   ingredientes
     .filter(i => i.codigo_plato === codigo)
     .forEach(i => {
@@ -140,10 +161,11 @@ function renderIngredients(codigo) {
     ul.appendChild(title);
 
     items.forEach(i => {
-      const qty = i.cantidad ? i.cantidad : 1;
-      const unit = i.unidad_medida ? ` ${i.unidad_medida}` : "";
+      const qty = (i.cantidad && String(i.cantidad).trim() !== "") ? i.cantidad : 1;
+      const unit = (i.unidad_medida || "").trim();
+      const unitTxt = unit ? ` ${unit}` : "";
       const li = document.createElement("li");
-      li.textContent = `– ${i.ingrediente} (${qty}${unit})`;
+      li.textContent = `– ${i.ingrediente} (${qty}${unitTxt})`;
       ul.appendChild(li);
     });
   });
@@ -155,7 +177,7 @@ function renderSteps(codigo) {
   ol.innerHTML = "";
   pasos
     .filter(p => p.codigo === codigo)
-    .sort((a,b)=>a.orden-b.orden)
+    .sort((a,b) => Number(a.orden) - Number(b.orden))
     .forEach(p => {
       const li = document.createElement("li");
       li.textContent = p.indicacion;
@@ -166,10 +188,15 @@ function renderSteps(codigo) {
 /* SEMANA */
 window.addCurrentPlate = function () {
   if (!currentPlate) return;
+
   if (!week.find(w => w.codigo === currentPlate.codigo)) {
     week.push(currentPlate);
     saveWeek();
+    showToast("Agregado a tu semana ✅");
+  } else {
+    showToast("Ya estaba en tu semana 👍");
   }
+
   closeRecipe();
 };
 
@@ -192,36 +219,47 @@ function renderWeek() {
 window.removeFromWeek = function (codigo) {
   week = week.filter(w => w.codigo !== codigo);
   saveWeek();
+  showToast("Quitado ✅");
 };
 
-/* COMPRAS — suma por nombre + unidad */
+/* COMPRAS: suma por nombre + unidad */
 function renderShopping() {
   shoppingList.innerHTML = "";
-  if (!week.length) return;
 
-  const grouped = {};
+  if (!week.length) {
+    shoppingList.innerHTML = `<div style="opacity:.6; padding:16px;">Agrega platos para ver tu lista.</div>`;
+    return;
+  }
+
+  const grouped = {}; // cat -> key -> {name, unit, qty}
 
   week.forEach(p => {
     ingredientes
       .filter(i => i.codigo_plato === p.codigo)
       .forEach(i => {
         const cat = normalizeCategory(i.tipo_ingrediente);
-        const name = i.ingrediente.trim();
+        const name = (i.ingrediente || "").trim();
         const unit = (i.unidad_medida || "").trim();
         const key = unit ? `${name}__${unit}` : name;
-        const qty = Number(i.cantidad) || 1;
+
+        const qty = (i.cantidad && String(i.cantidad).trim() !== "") ? Number(i.cantidad) : 1;
+        const safeQty = isNaN(qty) ? 1 : qty;
 
         if (!grouped[cat]) grouped[cat] = {};
         if (!grouped[cat][key]) grouped[cat][key] = { name, unit, qty: 0 };
 
-        grouped[cat][key].qty += qty;
+        grouped[cat][key].qty += safeQty;
       });
   });
 
   Object.entries(grouped).forEach(([cat, items]) => {
     const block = document.createElement("div");
     block.className = "shopping-category";
-    block.innerHTML = `<div class="shopping-category-title">${cat}</div>`;
+
+    const title = document.createElement("div");
+    title.className = "shopping-category-title";
+    title.textContent = cat;
+    block.appendChild(title);
 
     Object.values(items).forEach(i => {
       const unitTxt = i.unit ? ` ${i.unit}` : "";
@@ -235,7 +273,7 @@ function renderShopping() {
   });
 }
 
-/* STORAGE */
+/* STORAGE + counter bump */
 function saveWeek() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
   renderWeek();
@@ -250,4 +288,8 @@ function loadWeek() {
 
 function updateCounter() {
   weekCounter.textContent = `${week.length} platos en tu semana`;
+  weekCounter.classList.remove("bump");
+  // forzar reflow para re-disparar anim
+  void weekCounter.offsetWidth;
+  weekCounter.classList.add("bump");
 }
