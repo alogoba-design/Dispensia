@@ -4,62 +4,78 @@
   <meta charset="UTF-8" />
   <title>DISPENSIA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="stylesheet" href="dispensia.css" />
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="topbar">
-    <div class="logo">DISPENSIA</div>
-    <div id="weekCount" class="counter">0 platos en tu semana</div>
-  </header>
+<!-- HEADER -->
+<header class="topbar">
+  <h1>DISPENSIA</h1>
+  <div id="weekCounter">0 platos en tu semana</div>
+</header>
 
-  <!-- FILTROS -->
-  <section class="filters">
-    <div id="chips" class="filters-left">
-      <span class="chip active" data-filter="all">Todas</span>
-      <span class="chip" data-filter="rapido">Rápidas</span>
-      <span class="chip" data-filter="criollo">Criollo</span>
-      <span class="chip" data-filter="pollo">Pollo</span>
-      <span class="chip" data-filter="crema">Cremas</span>
-    </div>
+<!-- PANTALLA: INICIO -->
+<section id="view-home" class="view active">
+  <section class="filters" id="chips">
+    <span class="chip active" data-filter="all">Todas</span>
+    <span class="chip" data-filter="rapido">Rápidas</span>
+    <span class="chip" data-filter="criollo">Criollo</span>
+    <span class="chip" data-filter="pollo">Pollo</span>
   </section>
 
-  <!-- FEED -->
-  <main>
-    <section id="feed" class="gallery"></section>
-  </main>
+  <main id="feed" class="feed"></main>
+</section>
 
-  <!-- MODAL RECETA -->
-  <div id="recipeModal" class="modal" aria-hidden="true">
-    <div class="modal-box">
-      <button class="close-btn" onclick="closeRecipe()">✕</button>
+<!-- PANTALLA: SEMANA -->
+<section id="view-week" class="view">
+  <h2 class="view-title">Mi semana</h2>
+  <ul id="weekList" class="week-list"></ul>
+</section>
 
-      <div class="video-wrapper">
-        <iframe id="videoFrame" allowfullscreen></iframe>
-      </div>
+<!-- PANTALLA: COMPRAS -->
+<section id="view-shopping" class="view">
+  <h2 class="view-title">🛒 Lista de compras</h2>
+  <div id="shoppingList"></div>
+</section>
 
-      <h2 id="modalName"></h2>
-      <p class="meta">
-        <span id="modalTime"></span> ·
-        <span id="modalPortions"></span> ·
-        <span id="modalDifficulty"></span>
-      </p>
+<!-- MODAL RECETA -->
+<div id="recipeModal" class="modal" aria-hidden="true">
+  <div class="modal-box">
+    <button class="close" onclick="closeRecipe()">✕</button>
 
-      <h3>Ingredientes</h3>
-      <ul id="modalIngredients"></ul>
+    <div class="video-wrapper">
+      <iframe id="videoFrame" allowfullscreen></iframe>
+    </div>
 
-      <h3>Preparación</h3>
-      <ol id="modalSteps"></ol>
+    <h2 id="modalName"></h2>
+    <p class="meta">
+      <span id="modalTime"></span> ·
+      <span id="modalPortions"></span> ·
+      <span id="modalDifficulty"></span>
+    </p>
 
-      <button class="primary-btn" onclick="addCurrentPlate()">Agregar a mi semana</button>
+    <h3>Ingredientes</h3>
+    <ul id="modalIngredients"></ul>
+
+    <h3>Preparación</h3>
+    <ol id="modalSteps"></ol>
+
+    <div class="modal-actions">
+      <button class="primary" onclick="addCurrentPlate()">Agregar a mi semana</button>
+      <button class="ghost" onclick="closeRecipe()">Volver</button>
     </div>
   </div>
+</div>
 
-  <!-- LIBRERÍA CSV -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="switchView('home', this)">🏠<span>Inicio</span></button>
+  <button class="nav-item" onclick="switchView('week', this)">📅<span>Semana</span></button>
+  <button class="nav-item" onclick="switchView('shopping', this)">🛒<span>Compras</span></button>
+</nav>
 
-  <!-- APP -->
-  <script src="dispensia.js"></script>
+<script src="dispensia.js"></script>
 </body>
 </html>
