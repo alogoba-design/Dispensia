@@ -106,6 +106,7 @@ window.closeRecipe = function () {
   modal.setAttribute("aria-hidden", "true");
   document.getElementById("videoFrame").src = "";
   currentPlate = null;
+  document.querySelector(".modal-content").scrollTop = 0;
 };
 
 /* INGREDIENTES */
@@ -251,3 +252,13 @@ function loadWeek() {
 function updateCounter() {
   weekCounter.textContent = `${week.length} platos en tu semana`;
 }
+
+
+const recipeModal = document.getElementById("recipeModal");
+
+recipeModal.addEventListener("click", (e) => {
+  if (e.target === recipeModal) {
+    closeRecipe();
+  }
+});
+
