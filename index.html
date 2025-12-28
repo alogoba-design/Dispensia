@@ -8,51 +8,58 @@
 </head>
 <body>
 
-<header class="topbar">
-  <div class="logo">DISPENSIA</div>
-  <div id="weekCount" class="counter">0 platos en tu semana</div>
-</header>
+  <!-- HEADER -->
+  <header class="topbar">
+    <div class="logo">DISPENSIA</div>
+    <div id="weekCount" class="counter">0 platos en tu semana</div>
+  </header>
 
-<section class="filters">
-  <div id="chips" class="filters-left">
-    <span class="chip active" data-filter="all">Todas</span>
-    <span class="chip" data-filter="rapido">Rápidas</span>
-    <span class="chip" data-filter="criollo">Criollo</span>
-    <span class="chip" data-filter="pollo">Pollo</span>
-    <span class="chip" data-filter="nopica">Sin picante</span>
-  </div>
-</section>
-
-<main id="catalog">
-  <section id="feed" class="gallery"></section>
-</main>
-
-<!-- MODAL RECETA -->
-<div id="recipeModal" class="modal" aria-hidden="true">
-  <div class="modal-box">
-    <button class="close-btn" onclick="closeRecipe()">✕</button>
-
-    <div class="video-wrapper">
-      <iframe id="videoFrame" allowfullscreen></iframe>
+  <!-- FILTROS -->
+  <section class="filters">
+    <div id="chips" class="filters-left">
+      <span class="chip active" data-filter="all">Todas</span>
+      <span class="chip" data-filter="rapido">Rápidas</span>
+      <span class="chip" data-filter="criollo">Criollo</span>
+      <span class="chip" data-filter="pollo">Pollo</span>
+      <span class="chip" data-filter="crema">Cremas</span>
     </div>
+  </section>
 
-    <h2 id="modalName"></h2>
-    <p class="meta">
-      <span id="modalTime"></span> ·
-      <span id="modalPortions"></span> ·
-      <span id="modalDifficulty"></span>
-    </p>
+  <!-- FEED -->
+  <main>
+    <section id="feed" class="gallery"></section>
+  </main>
 
-    <h3>Ingredientes</h3>
-    <ul id="modalIngredients"></ul>
+  <!-- MODAL RECETA -->
+  <div id="recipeModal" class="modal" aria-hidden="true">
+    <div class="modal-box">
+      <button class="close-btn" onclick="closeRecipe()">✕</button>
 
-    <h3>Preparación</h3>
-    <ol id="modalSteps"></ol>
+      <div class="video-wrapper">
+        <iframe id="videoFrame" allowfullscreen></iframe>
+      </div>
 
-    <button class="primary-btn" onclick="addCurrentPlate()">Agregar a mi semana</button>
+      <h2 id="modalName"></h2>
+      <p class="meta">
+        <span id="modalTime"></span> ·
+        <span id="modalPortions"></span> ·
+        <span id="modalDifficulty"></span>
+      </p>
+
+      <h3>Ingredientes</h3>
+      <ul id="modalIngredients"></ul>
+
+      <h3>Preparación</h3>
+      <ol id="modalSteps"></ol>
+
+      <button class="primary-btn" onclick="addCurrentPlate()">Agregar a mi semana</button>
+    </div>
   </div>
-</div>
 
-<script src="dispensia.js"></script>
+  <!-- LIBRERÍA CSV -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- APP -->
+  <script src="dispensia.js"></script>
 </body>
 </html>

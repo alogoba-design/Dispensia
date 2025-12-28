@@ -1,5 +1,5 @@
 /*****************************************************
- * DISPENSIA – versión estable con CSV correcto
+ * DISPENSIA – versión estable FINAL
  *****************************************************/
 
 const SHEET_PLATOS =
@@ -15,6 +15,7 @@ const IMG_BASE = "assets/img/";
 
 const feed = document.getElementById("feed");
 const modal = document.getElementById("recipeModal");
+const weekCountEl = document.getElementById("weekCount");
 
 let platos = [];
 let ingredientes = [];
@@ -23,7 +24,7 @@ let filtro = "all";
 let weekCount = 0;
 let currentPlate = null;
 
-/* ================= CSV LOADER (CORRECTO) ================= */
+/* ================= CSV ================= */
 function loadCSV(url) {
   return new Promise(resolve => {
     Papa.parse(url, {
@@ -35,7 +36,7 @@ function loadCSV(url) {
   });
 }
 
-/* ================= LOAD DATA ================= */
+/* ================= INIT ================= */
 async function loadData() {
   platos = await loadCSV(SHEET_PLATOS);
   ingredientes = await loadCSV(SHEET_ING);
@@ -43,34 +44,35 @@ async function loadData() {
   renderFeed();
 }
 
-/* ================= RENDER FEED ================= */
+/* ================= FEED ================= */
 function renderFeed() {
   feed.innerHTML = "";
 
-  const visibles = platos.filter(p => {
-    if (!(p.etapa === "1" || p.etapa === "2")) return false;
-    if (filtro === "all") return true;
-    if (filtro === "rapido") return Number(p["tiempo_preparacion(min)"]) <= 25;
-    return (p.tipo_plato || "").toLowerCase().includes(filtro);
-  });
-
-  visibles.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${IMG_BASE + p.imagen_archivo}">
-      <div class="card-body">
-        <h3>${p.nombre_plato}</h3>
-        <button onclick="openRecipe('${p.codigo}')">Elegir plato</button>
-      </div>`;
-    feed.appendChild(card);
-  });
+  platos
+    .filter(p => p.etapa === "1" || p.etapa === "2")
+    .filter(p => {
+      if (filtro === "all") return true;
+      if (filtro === "rapido") return Number(p["tiempo_preparacion(min)"]) <= 25;
+      return (p.tipo_plato || "").toLowerCase().includes(filtro);
+    })
+    .forEach(p => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${IMG_BASE + p.imagen_archivo}">
+        <div class="card-body">
+          <h3>${p.nombre_plato}</h3>
+          <button onclick="openRecipe('${p.codigo}')">Elegir plato</button>
+        </div>`;
+      feed.appendChild(card);
+    });
 }
 
 /* ================= MODAL ================= */
 window.openRecipe = function(codigo) {
   const p = platos.find(x => x.codigo === codigo);
   if (!p) return;
+  currentPlate = p;
 
   modal.querySelector(".modal-box").scrollTop = 0;
 
@@ -83,17 +85,13 @@ window.openRecipe = function(codigo) {
     p.youtube_id ? `https://www.youtube.com/embed/${p.youtube_id}` : "";
 
   document.getElementById("modalIngredients").innerHTML =
-    ingredientes
-      .filter(i => i.codigo_plato === codigo)
-      .map(i => `<li>${i.ingrediente}</li>`)
-      .join("");
+    ingredientes.filter(i => i.codigo_plato === codigo)
+      .map(i => `<li>${i.ingrediente}</li>`).join("");
 
   document.getElementById("modalSteps").innerHTML =
-    pasos
-      .filter(s => s.codigo === codigo)
+    pasos.filter(s => s.codigo === codigo)
       .sort((a,b)=>a.orden-b.orden)
-      .map(s => `<li>${s.indicacion}</li>`)
-      .join("");
+      .map(s => `<li>${s.indicacion}</li>`).join("");
 
   modal.setAttribute("aria-hidden","false");
 };
@@ -109,19 +107,18 @@ modal.addEventListener("click", e => {
 
 window.addCurrentPlate = function() {
   weekCount++;
-  document.getElementById("weekCount").textContent =
-    `${weekCount} platos en tu semana`;
+  weekCountEl.textContent = `${weekCount} platos en tu semana`;
   closeRecipe();
 };
 
 /* ================= FILTERS ================= */
 document.getElementById("chips").addEventListener("click", e => {
   if (!e.target.classList.contains("chip")) return;
-  document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
   e.target.classList.add("active");
   filtro = e.target.dataset.filter;
   renderFeed();
 });
 
-/* ================= INIT ================= */
+/* ================= START ================= */
 loadData();

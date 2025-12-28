@@ -82,12 +82,12 @@ body {
 
 .card-body button {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   border-radius: 999px;
   border: none;
   background: #15803d;
   color: white;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
 }
 
@@ -110,7 +110,7 @@ body {
 .modal-box {
   background: white;
   width: 90%;
-  max-width: 700px;
+  max-width: 720px;
   max-height: 80vh;
   overflow-y: auto;
   border-radius: 18px;
@@ -144,11 +144,11 @@ body {
 .primary-btn {
   margin-top: 12px;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border-radius: 999px;
   border: none;
   background: #15803d;
   color: white;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
 }
