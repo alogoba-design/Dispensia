@@ -1,5 +1,7 @@
 /*****************************************************
- * DISPENSIA – App estable (suma por nombre + unidad)
+ * DISPENSIA – App estable
+ * Filtros por tipo_plato (separado por ;)
+ * Agrupación literal por tipo_ingrediente
  *****************************************************/
 
 const PLATOS_URL =
@@ -17,57 +19,77 @@ const weekList = document.getElementById("weekList");
 const shoppingList = document.getElementById("shoppingList");
 const weekCounter = document.getElementById("weekCounter");
 const modal = document.getElementById("recipeModal");
+const chips = document.getElementById("chips");
 
 let platos = [];
 let ingredientes = [];
 let pasos = [];
 let week = loadWeek();
 let currentPlate = null;
+let filtro = "all";
 
-/* CSV */
+/* ================= CSV ================= */
 function fetchCSV(url) {
-  return new Promise((resolve, reject) => {
+  return new Promise(resolve => {
     Papa.parse(url, {
       download: true,
       header: true,
       skipEmptyLines: true,
-      complete: r => resolve(r.data),
-      error: err => reject(err)
+      complete: r => resolve(r.data)
     });
   });
 }
 
-/* NAV */
-window.switchView = function (view, btn) {
-  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-  const target = document.getElementById(`view-${view}`);
-  if (target) target.classList.add("active");
-
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
-  if (btn) btn.classList.add("active");
-
-  window.scrollTo({ top: 0, behavior: "smooth" });
-};
-
-/* INIT */
+/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", async () => {
   platos = await fetchCSV(PLATOS_URL);
   ingredientes = await fetchCSV(ING_URL);
   pasos = await fetchCSV(PASOS_URL);
 
+  initFilters();
   renderFeed();
   renderWeek();
   renderShopping();
   updateCounter();
-
-  document.getElementById("view-home")?.classList.add("active");
 });
 
-/* FEED */
+/* ================= FILTROS ================= */
+function initFilters() {
+  chips.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      chips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      filtro = chip.dataset.filter;
+      renderFeed();
+    });
+  });
+}
+
+/* ================= FEED ================= */
 function renderFeed() {
   feed.innerHTML = "";
+
   platos
-    .filter(p => p.etapa === "1" || p.etapa === "2")
+    .filter(p => {
+      // solo etapas válidas
+      if (!(p.etapa === "1" || p.etapa === "2")) return false;
+
+      // filtro todas
+      if (filtro === "all") return true;
+
+      // filtro rápido
+      if (filtro === "rapido") {
+        return Number(p["tiempo_preparacion(min)"]) <= 25;
+      }
+
+      // filtro por tipo_plato separado por ;
+      const tipos = (p.tipo_plato || "")
+        .toLowerCase()
+        .split(";")
+        .map(t => t.trim());
+
+      return tipos.includes(filtro);
+    })
     .forEach(p => {
       const card = document.createElement("div");
       card.className = "card";
@@ -82,7 +104,7 @@ function renderFeed() {
     });
 }
 
-/* MODAL */
+/* ================= MODAL ================= */
 window.openRecipe = function (codigo) {
   const p = platos.find(x => x.codigo === codigo);
   if (!p) return;
@@ -100,27 +122,16 @@ window.openRecipe = function (codigo) {
   renderSteps(codigo);
 
   modal.setAttribute("aria-hidden", "false");
+  modal.querySelector(".modal-box").scrollTop = 0;
 };
 
 window.closeRecipe = function () {
   modal.setAttribute("aria-hidden", "true");
   document.getElementById("videoFrame").src = "";
   currentPlate = null;
-  document.querySelector(".modal-content").scrollTop = 0;
 };
 
-/* INGREDIENTES */
-function normalizeCategory(tipo) {
-  if (!tipo) return "Otros";
-  const t = tipo.toLowerCase();
-  if (t.includes("verd")) return "Verduras";
-  if (t.includes("carne") || t.includes("pollo") || t.includes("pesc")) return "Carnes";
-  if (t.includes("lact")) return "Lácteos";
-  if (t.includes("abar") || t.includes("grano") || t.includes("pasta")) return "Abarrotes";
-  if (t.includes("espec")) return "Especias";
-  return "Otros";
-}
-
+/* ================= INGREDIENTES (LITERAL) ================= */
 function renderIngredients(codigo) {
   const ul = document.getElementById("modalIngredients");
   ul.innerHTML = "";
@@ -130,7 +141,7 @@ function renderIngredients(codigo) {
   ingredientes
     .filter(i => i.codigo_plato === codigo)
     .forEach(i => {
-      const cat = normalizeCategory(i.tipo_ingrediente);
+      const cat = (i.tipo_ingrediente || "Otros").trim();
       if (!grouped[cat]) grouped[cat] = [];
       grouped[cat].push(i);
     });
@@ -141,7 +152,7 @@ function renderIngredients(codigo) {
     ul.appendChild(title);
 
     items.forEach(i => {
-      const qty = i.cantidad ? i.cantidad : 1;
+      const qty = i.cantidad || 1;
       const unit = i.unidad_medida ? ` ${i.unidad_medida}` : "";
       const li = document.createElement("li");
       li.textContent = `– ${i.ingrediente} (${qty}${unit})`;
@@ -150,7 +161,7 @@ function renderIngredients(codigo) {
   });
 }
 
-/* PASOS */
+/* ================= PASOS ================= */
 function renderSteps(codigo) {
   const ol = document.getElementById("modalSteps");
   ol.innerHTML = "";
@@ -164,7 +175,7 @@ function renderSteps(codigo) {
     });
 }
 
-/* SEMANA */
+/* ================= SEMANA ================= */
 window.addCurrentPlate = function () {
   if (!currentPlate) return;
   if (!week.find(w => w.codigo === currentPlate.codigo)) {
@@ -195,7 +206,7 @@ window.removeFromWeek = function (codigo) {
   saveWeek();
 };
 
-/* COMPRAS — suma por nombre + unidad */
+/* ================= COMPRAS ================= */
 function renderShopping() {
   shoppingList.innerHTML = "";
   if (!week.length) return;
@@ -206,7 +217,7 @@ function renderShopping() {
     ingredientes
       .filter(i => i.codigo_plato === p.codigo)
       .forEach(i => {
-        const cat = normalizeCategory(i.tipo_ingrediente);
+        const cat = (i.tipo_ingrediente || "Otros").trim();
         const name = i.ingrediente.trim();
         const unit = (i.unidad_medida || "").trim();
         const key = unit ? `${name}__${unit}` : name;
@@ -236,7 +247,7 @@ function renderShopping() {
   });
 }
 
-/* STORAGE */
+/* ================= STORAGE ================= */
 function saveWeek() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
   renderWeek();
@@ -253,11 +264,7 @@ function updateCounter() {
   weekCounter.textContent = `${week.length} platos en tu semana`;
 }
 
-
-const recipeModal = document.getElementById("recipeModal");
-
-recipeModal.addEventListener("click", (e) => {
-  if (e.target === recipeModal) {
-    closeRecipe();
-  }
+/* ================= CERRAR MODAL CLICK FUERA ================= */
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) closeRecipe();
 });
