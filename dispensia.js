@@ -1,9 +1,8 @@
 /*****************************************************
- * DISPENSIA – versión estable
- * ✔ Filtros dinámicos desde tipo_plato (;)
- * ✔ Receta agrupada por parte_del_plato
- * ✔ Compras agrupadas por tipo_ingrediente
- * ✔ Observación visible en receta
+ * DISPENSIA – versión estable FINAL
+ * ✔ Semana simple (contador + lista)
+ * ✔ Compras funcionando
+ * ✔ Filtros y receta OK
  *****************************************************/
 
 const PLATOS_URL =
@@ -16,10 +15,12 @@ const PASOS_URL =
 const IMG_BASE = "assets/img/";
 const STORAGE_KEY = "dispensia_week";
 
+/* DOM */
 const feed = document.getElementById("feed");
 const chips = document.getElementById("chips");
 const modal = document.getElementById("recipeModal");
 const weekCounter = document.getElementById("weekCounter");
+const weekList = document.getElementById("weekList");
 const shoppingList = document.getElementById("shoppingList");
 
 let platos = [];
@@ -49,11 +50,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   buildFiltersFromData();
   renderFeed();
+  renderWeek();
   renderShopping();
   updateCounter();
 });
 
-/* ================= FILTROS DINÁMICOS ================= */
+/* ================= FILTROS ================= */
 function buildFiltersFromData() {
   const set = new Set();
 
@@ -68,15 +70,13 @@ function buildFiltersFromData() {
 
   chips.innerHTML = `<span class="chip active" data-filter="all">Todas</span>`;
 
-  Array.from(set)
-    .sort()
-    .forEach(t => {
-      const chip = document.createElement("span");
-      chip.className = "chip";
-      chip.dataset.filter = t;
-      chip.textContent = t.charAt(0).toUpperCase() + t.slice(1);
-      chips.appendChild(chip);
-    });
+  Array.from(set).sort().forEach(t => {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.dataset.filter = t;
+    chip.textContent = t;
+    chips.appendChild(chip);
+  });
 
   chips.querySelectorAll(".chip").forEach(chip => {
     chip.addEventListener("click", () => {
@@ -146,7 +146,7 @@ window.closeRecipe = function () {
   currentPlate = null;
 };
 
-/* ================= RECETA – AGRUPADA POR parte_del_plato ================= */
+/* ================= RECETA INGREDIENTES ================= */
 function renderRecipeIngredients(codigo) {
   const ul = document.getElementById("modalIngredients");
   ul.innerHTML = "";
@@ -170,7 +170,6 @@ function renderRecipeIngredients(codigo) {
       const qty = i.cantidad || 1;
       const unit = i.unidad_medida ? ` ${i.unidad_medida}` : "";
       const obs = i.obs ? ` ${i.obs}` : "";
-
       const li = document.createElement("li");
       li.textContent = `– ${i.ingrediente} (${qty}${unit})${obs}`;
       ul.appendChild(li);
@@ -192,10 +191,32 @@ function renderSteps(codigo) {
     });
 }
 
-/* ================= COMPRAS – AGRUPADAS POR tipo_ingrediente ================= */
+/* ================= SEMANA ================= */
+window.addCurrentPlate = function () {
+  if (!currentPlate) return;
+
+  if (!week.find(w => w.codigo === currentPlate.codigo)) {
+    week.push(currentPlate);
+    saveWeek();
+  }
+  closeRecipe();
+};
+
+function renderWeek() {
+  if (!weekList) return;
+  weekList.innerHTML = "";
+
+  week.forEach(p => {
+    const li = document.createElement("li");
+    li.textContent = p.nombre_plato;
+    weekList.appendChild(li);
+  });
+}
+
+/* ================= COMPRAS ================= */
 function renderShopping() {
+  if (!shoppingList) return;
   shoppingList.innerHTML = "";
-  if (!week.length) return;
 
   const grouped = {};
 
@@ -217,22 +238,24 @@ function renderShopping() {
 
   Object.entries(grouped).forEach(([cat, items]) => {
     const block = document.createElement("div");
-    block.className = "shopping-category";
-    block.innerHTML = `<div class="shopping-category-title">${cat}</div>`;
-
+    block.innerHTML = `<h4>${cat}</h4>`;
     Object.values(items).forEach(i => {
-      const unitTxt = i.unit ? ` ${i.unit}` : "";
       const row = document.createElement("div");
-      row.className = "shopping-item";
-      row.innerHTML = `<span>${i.name}</span><span>${i.qty}${unitTxt}</span>`;
+      row.textContent = `${i.name} – ${i.qty}${i.unit ? " " + i.unit : ""}`;
       block.appendChild(row);
     });
-
     shoppingList.appendChild(block);
   });
 }
 
 /* ================= STORAGE ================= */
+function saveWeek() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
+  renderWeek();
+  renderShopping();
+  updateCounter();
+}
+
 function loadWeek() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch { return []; }
