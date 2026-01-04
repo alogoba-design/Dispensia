@@ -1,7 +1,8 @@
 /*****************************************************
- * DISPENSIA – App estable
- * Filtros por tipo_plato (separado por ;)
- * Agrupación literal por tipo_ingrediente
+ * DISPENSIA – versión estable
+ * ✔ Filtros dinámicos desde tipo_plato (;)
+ * ✔ Receta agrupada por parte_del_plato
+ * ✔ Compras agrupadas por tipo_ingrediente
  *****************************************************/
 
 const PLATOS_URL =
@@ -15,11 +16,10 @@ const IMG_BASE = "assets/img/";
 const STORAGE_KEY = "dispensia_week";
 
 const feed = document.getElementById("feed");
-const weekList = document.getElementById("weekList");
-const shoppingList = document.getElementById("shoppingList");
-const weekCounter = document.getElementById("weekCounter");
-const modal = document.getElementById("recipeModal");
 const chips = document.getElementById("chips");
+const modal = document.getElementById("recipeModal");
+const weekCounter = document.getElementById("weekCounter");
+const shoppingList = document.getElementById("shoppingList");
 
 let platos = [];
 let ingredientes = [];
@@ -46,15 +46,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   ingredientes = await fetchCSV(ING_URL);
   pasos = await fetchCSV(PASOS_URL);
 
-  initFilters();
+  buildFiltersFromData();
   renderFeed();
-  renderWeek();
   renderShopping();
   updateCounter();
 });
 
-/* ================= FILTROS ================= */
-function initFilters() {
+/* ================= FILTROS DINÁMICOS ================= */
+function buildFiltersFromData() {
+  const set = new Set();
+
+  platos.forEach(p => {
+    (p.tipo_plato || "")
+      .toLowerCase()
+      .split(";")
+      .map(t => t.trim())
+      .filter(Boolean)
+      .forEach(t => set.add(t));
+  });
+
+  chips.innerHTML = `<span class="chip active" data-filter="all">Todas</span>`;
+
+  Array.from(set)
+    .sort()
+    .forEach(t => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.dataset.filter = t;
+      chip.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+      chips.appendChild(chip);
+    });
+
   chips.querySelectorAll(".chip").forEach(chip => {
     chip.addEventListener("click", () => {
       chips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
@@ -70,24 +92,16 @@ function renderFeed() {
   feed.innerHTML = "";
 
   platos
+    .filter(p => p.etapa === "1" || p.etapa === "2")
     .filter(p => {
-      // solo etapas válidas
-      if (!(p.etapa === "1" || p.etapa === "2")) return false;
-
-      // filtro todas
       if (filtro === "all") return true;
-
-      // filtro rápido
       if (filtro === "rapido") {
         return Number(p["tiempo_preparacion(min)"]) <= 25;
       }
-
-      // filtro por tipo_plato separado por ;
       const tipos = (p.tipo_plato || "")
         .toLowerCase()
         .split(";")
         .map(t => t.trim());
-
       return tipos.includes(filtro);
     })
     .forEach(p => {
@@ -118,7 +132,7 @@ window.openRecipe = function (codigo) {
   document.getElementById("videoFrame").src =
     p.youtube_id ? `https://www.youtube.com/embed/${p.youtube_id}` : "";
 
-  renderIngredients(codigo);
+  renderRecipeIngredients(codigo);
   renderSteps(codigo);
 
   modal.setAttribute("aria-hidden", "false");
@@ -131,8 +145,8 @@ window.closeRecipe = function () {
   currentPlate = null;
 };
 
-/* ================= INGREDIENTES (LITERAL) ================= */
-function renderIngredients(codigo) {
+/* ================= RECETA – AGRUPADA POR parte_del_plato ================= */
+function renderRecipeIngredients(codigo) {
   const ul = document.getElementById("modalIngredients");
   ul.innerHTML = "";
 
@@ -141,14 +155,14 @@ function renderIngredients(codigo) {
   ingredientes
     .filter(i => i.codigo_plato === codigo)
     .forEach(i => {
-      const cat = (i.tipo_ingrediente || "Otros").trim();
-      if (!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(i);
+      const parte = (i.parte_del_plato || "Otros").trim();
+      if (!grouped[parte]) grouped[parte] = [];
+      grouped[parte].push(i);
     });
 
-  Object.entries(grouped).forEach(([cat, items]) => {
+  Object.entries(grouped).forEach(([parte, items]) => {
     const title = document.createElement("li");
-    title.innerHTML = `<strong>${cat}</strong>`;
+    title.innerHTML = `<strong>${parte}</strong>`;
     ul.appendChild(title);
 
     items.forEach(i => {
@@ -175,38 +189,7 @@ function renderSteps(codigo) {
     });
 }
 
-/* ================= SEMANA ================= */
-window.addCurrentPlate = function () {
-  if (!currentPlate) return;
-  if (!week.find(w => w.codigo === currentPlate.codigo)) {
-    week.push(currentPlate);
-    saveWeek();
-  }
-  closeRecipe();
-};
-
-function renderWeek() {
-  weekList.innerHTML = "";
-  if (!week.length) {
-    weekList.innerHTML = `<li style="opacity:.6">Aún no has agregado platos</li>`;
-    return;
-  }
-  week.forEach(p => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      ${p.nombre_plato}
-      <button onclick="removeFromWeek('${p.codigo}')">Quitar</button>
-    `;
-    weekList.appendChild(li);
-  });
-}
-
-window.removeFromWeek = function (codigo) {
-  week = week.filter(w => w.codigo !== codigo);
-  saveWeek();
-};
-
-/* ================= COMPRAS ================= */
+/* ================= COMPRAS – AGRUPADAS POR tipo_ingrediente ================= */
 function renderShopping() {
   shoppingList.innerHTML = "";
   if (!week.length) return;
@@ -225,7 +208,6 @@ function renderShopping() {
 
         if (!grouped[cat]) grouped[cat] = {};
         if (!grouped[cat][key]) grouped[cat][key] = { name, unit, qty: 0 };
-
         grouped[cat][key].qty += qty;
       });
   });
@@ -248,13 +230,6 @@ function renderShopping() {
 }
 
 /* ================= STORAGE ================= */
-function saveWeek() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(week));
-  renderWeek();
-  renderShopping();
-  updateCounter();
-}
-
 function loadWeek() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
   catch { return []; }
