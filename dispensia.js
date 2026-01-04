@@ -3,6 +3,7 @@
  * ✔ Filtros dinámicos desde tipo_plato (;)
  * ✔ Receta agrupada por parte_del_plato
  * ✔ Compras agrupadas por tipo_ingrediente
+ * ✔ Observación visible en receta
  *****************************************************/
 
 const PLATOS_URL =
@@ -168,8 +169,10 @@ function renderRecipeIngredients(codigo) {
     items.forEach(i => {
       const qty = i.cantidad || 1;
       const unit = i.unidad_medida ? ` ${i.unidad_medida}` : "";
+      const obs = i.obs ? ` ${i.obs}` : "";
+
       const li = document.createElement("li");
-      li.textContent = `– ${i.ingrediente} (${qty}${unit})`;
+      li.textContent = `– ${i.ingrediente} (${qty}${unit})${obs}`;
       ul.appendChild(li);
     });
   });
@@ -243,3 +246,4 @@ function updateCounter() {
 modal.addEventListener("click", (e) => {
   if (e.target === modal) closeRecipe();
 });
+
