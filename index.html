@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Dispensia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="stylesheet" href="dispensia.css" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -11,7 +12,7 @@
 
 <header class="topbar">
   <div class="topbar-inner">
-    <img src="assets/img/logo-dispensia.png" class="logo" />
+    <img src="assets/img/logo-dispensia.png" class="logo" alt="Dispensia" />
     <div class="topbar-text">
       <strong>Dispensia</strong>
       <span id="weekCounter">0 platos en tu semana</span>
@@ -19,18 +20,29 @@
   </div>
 </header>
 
+<section class="hero">
+  <div class="hero-overlay">
+    <h1>Planifica. Compra. Cocina fácil.</h1>
+    <p>Comer bien, sin complicarte.</p>
+  </div>
+</section>
+
+<!-- HOME -->
 <section id="view-home" class="view active">
   <section class="filters" id="chips"></section>
   <main id="feed" class="feed"></main>
 </section>
 
+<!-- SEMANA -->
 <section id="view-week" class="view">
-  <h2>📅 Mi semana</h2>
-  <div id="weekList"></div>
+  <h2 class="view-title">📅 Mi semana</h2>
+  <div id="weekList" class="week-cards"></div>
 </section>
 
+<!-- COMPRAS -->
 <section id="view-shopping" class="view">
-  <h2>🛒 Lista de compras</h2>
+  <h2 class="view-title">🛒 Lista de compras</h2>
+
   <table class="shopping-table">
     <thead>
       <tr>
@@ -44,27 +56,40 @@
   </table>
 </section>
 
-<!-- MODAL -->
+<!-- MODAL RECETA -->
 <div id="recipeModal" class="modal" aria-hidden="true">
   <div class="modal-box">
-    <button class="close" id="closeModal">✕</button>
+    <button class="close" onclick="closeRecipe()" type="button">✕</button>
 
-    <iframe id="videoFrame"></iframe>
+    <div class="video-wrapper">
+      <iframe id="videoFrame" allowfullscreen></iframe>
+    </div>
 
     <h2 id="modalName"></h2>
+    <p class="meta">
+      <span id="modalTime"></span> ·
+      <span id="modalPortions"></span> ·
+      <span id="modalDifficulty"></span>
+    </p>
+
+    <h3>Ingredientes</h3>
     <ul id="modalIngredients"></ul>
+
+    <h3>Preparación</h3>
     <ol id="modalSteps"></ol>
 
-    <button id="addToWeekBtn" class="primary">
-      Agregar a mi semana
-    </button>
+    <div class="modal-actions">
+      <button class="primary" onclick="addCurrentPlate()" type="button">Agregar a mi semana</button>
+      <button class="ghost" onclick="closeRecipe()" type="button">Volver</button>
+    </div>
   </div>
 </div>
 
+<!-- NAV -->
 <nav class="bottom-nav">
-  <button onclick="switchView('home')">Inicio</button>
-  <button onclick="switchView('week')">Semana</button>
-  <button onclick="switchView('shopping')">Compras</button>
+  <button class="nav-item active" id="navHome" onclick="switchView('home',this)" type="button">🏠<span>Inicio</span></button>
+  <button class="nav-item" id="navWeek" onclick="switchView('week',this)" type="button">📅<span>Semana</span></button>
+  <button class="nav-item" id="navShopping" onclick="switchView('shopping',this)" type="button">🛒<span>Compras</span></button>
 </nav>
 
 <script src="dispensia.js"></script>
