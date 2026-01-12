@@ -13,7 +13,7 @@
 <!-- HEADER -->
 <header class="topbar">
   <div class="topbar-inner">
-    <img src="assets/img/logo-dispensia.png" alt="Dispensia" class="logo" />
+    <img src="assets/img/logo-dispensia.png" class="logo" alt="Dispensia" />
     <div class="topbar-text">
       <strong>Dispensia</strong>
       <span id="weekCounter">0 platos en tu semana</span>
@@ -37,18 +37,29 @@
 
 <!-- SEMANA -->
 <section id="view-week" class="view">
-  <h2 class="view-title">Mi semana</h2>
-  <ul id="weekList" class="week-list"></ul>
+  <h2 class="view-title">📅 Mi semana</h2>
+  <div id="weekList" class="week-cards"></div>
 </section>
 
 <!-- COMPRAS -->
 <section id="view-shopping" class="view">
   <h2 class="view-title">🛒 Lista de compras</h2>
-  <div id="shoppingList"></div>
+
+  <table class="shopping-table">
+    <thead>
+      <tr>
+        <th>Ingrediente</th>
+        <th>Cantidad</th>
+        <th>Unidad</th>
+        <th>Categoría</th>
+      </tr>
+    </thead>
+    <tbody id="shoppingList"></tbody>
+  </table>
 
   <div class="modal-actions">
     <button class="primary" onclick="exportShoppingPDF()">Exportar PDF</button>
-    <button class="ghost" onclick="shareShoppingWhatsApp()">Enviar por WhatsApp</button>
+    <button class="ghost" onclick="shareShoppingWhatsApp()">WhatsApp</button>
   </div>
 </section>
 
