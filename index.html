@@ -29,15 +29,9 @@
   </div>
 </section>
 
-<!-- INICIO -->
+<!-- HOME -->
 <section id="view-home" class="view active">
-  <section class="filters" id="chips">
-    <span class="chip active" data-filter="all">Todas</span>
-    <span class="chip" data-filter="rapido">Rápidas</span>
-    <span class="chip" data-filter="criollo">Criollo</span>
-    <span class="chip" data-filter="pollo">Pollo</span>
-  </section>
-
+  <section class="filters" id="chips"></section>
   <main id="feed" class="feed"></main>
 </section>
 
@@ -51,6 +45,11 @@
 <section id="view-shopping" class="view">
   <h2 class="view-title">🛒 Lista de compras</h2>
   <div id="shoppingList"></div>
+
+  <div class="modal-actions">
+    <button class="primary" onclick="exportShoppingPDF()">Exportar PDF</button>
+    <button class="ghost" onclick="shareShoppingWhatsApp()">Enviar por WhatsApp</button>
+  </div>
 </section>
 
 <!-- MODAL RECETA -->
