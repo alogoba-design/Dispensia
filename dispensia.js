@@ -9,6 +9,7 @@
 const PLATOS_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
 const ING_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=688098548&single=true&output=csv";
 const PASOS_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=1382429978&single=true&output=csv";
+const IMG_BASE="assets/img/";
 const STORAGE="dispensia_week";
 
 let platos=[],ingredientes=[],pasos=[];
@@ -33,14 +34,6 @@ function loadCSV(url){
   return new Promise(res=>{
     Papa.parse(url,{download:true,header:true,complete:r=>res(r.data)});
   });
-}
-
-/* NAV */
-function switchView(v,btn){
-  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
-  document.getElementById("view-"+v).classList.add("active");
-  document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active");
 }
 
 /* FILTERS */
@@ -68,15 +61,14 @@ function setFilter(f,c){
 function renderFeed(){
   const feed=document.getElementById("feed");
   feed.innerHTML="";
-  platos
-    .filter(p=>p.etapa==="1"||p.etapa==="2")
+  platos.filter(p=>p.etapa==="1"||p.etapa==="2")
     .filter(p=>filtro==="all"||p.tipo_plato.includes(filtro))
     .forEach(p=>{
       feed.innerHTML+=`
         <div class="card">
-          <img src="assets/img/${p.imagen_archivo}">
+          <img src="${IMG_BASE+p.imagen_archivo}">
           <div class="card-body">
-            <strong>${p.nombre_plato}</strong>
+            <h3>${p.nombre_plato}</h3>
             <button onclick="openRecipe('${p.codigo}')">Ver plato</button>
           </div>
         </div>`;
@@ -87,10 +79,10 @@ function renderFeed(){
 function openRecipe(c){
   currentPlate=platos.find(p=>p.codigo===c);
   document.getElementById("modalName").textContent=currentPlate.nombre_plato;
-  document.getElementById("modalTime").textContent=currentPlate["tiempo_preparacion(min)"]+" min";
+  document.getElementById("modalTime").textContent=`${currentPlate["tiempo_preparacion(min)"]} min`;
   document.getElementById("modalPortions").textContent=currentPlate.porciones;
   document.getElementById("modalDifficulty").textContent=currentPlate.dificultad;
-  document.getElementById("videoFrame").src="https://www.youtube.com/embed/"+currentPlate.youtube_id;
+  document.getElementById("videoFrame").src=`https://www.youtube.com/embed/${currentPlate.youtube_id}`;
   renderRecipeIngredients(c);
   renderSteps(c);
   document.getElementById("recipeModal").setAttribute("aria-hidden","false");
@@ -105,7 +97,7 @@ function renderRecipeIngredients(c){
   const ul=document.getElementById("modalIngredients");
   ul.innerHTML="";
   ingredientes.filter(i=>i.codigo_plato===c).forEach(i=>{
-    ul.innerHTML+=`<li>${i.ingrediente} (${i.cantidad} ${i.unidad_medida})</li>`;
+    ul.innerHTML+=`<li>${i.ingrediente} (${i.cantidad} ${i.unidad_medida}) ${i.obs||""}</li>`;
   });
 }
 
@@ -113,9 +105,7 @@ function renderRecipeIngredients(c){
 function renderSteps(c){
   const ol=document.getElementById("modalSteps");
   ol.innerHTML="";
-  pasos.filter(p=>p.codigo===c).forEach(p=>{
-    ol.innerHTML+=`<li>${p.indicacion}</li>`;
-  });
+  pasos.filter(p=>p.codigo===c).forEach(p=>ol.innerHTML+=`<li>${p.indicacion}</li>`);
 }
 
 /* WEEK */
@@ -146,22 +136,34 @@ function removeWeek(i){
 
 /* SHOPPING */
 function renderShopping(){
-  const el=document.getElementById("shoppingList");
-  el.innerHTML="";
+  const tb=document.getElementById("shoppingList");
+  tb.innerHTML="";
   const map={};
   week.forEach(w=>{
     ingredientes.filter(i=>i.codigo_plato===w.codigo).forEach(i=>{
-      const key=i.ingrediente+"_"+i.unidad_reg;
+      const key=i.ingrediente+i.unidad_reg;
       if(!map[key]) map[key]={...i,qty:0};
       map[key].qty+=Number(i.cantidad_reg)||1;
     });
   });
   Object.values(map).forEach(i=>{
-    el.innerHTML+=`${i.ingrediente} · ${i.qty.toFixed(2)} ${i.unidad_reg}<br>`;
+    tb.innerHTML+=`
+      <tr>
+        <td>${i.ingrediente}</td>
+        <td>${i.qty}</td>
+        <td>${i.unidad_reg}</td>
+        <td>${i.tipo_ingrediente}</td>
+      </tr>`;
   });
 }
 
-/* COUNTER */
+/* NAV */
+function switchView(v,btn){
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  document.getElementById("view-"+v).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+}
 function updateCounter(){
   document.getElementById("weekCounter").textContent=`${week.length} platos en tu semana`;
 }
