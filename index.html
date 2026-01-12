@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Dispensia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="dispensia.css" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -22,8 +21,6 @@
 
 <section class="hero">
   <img src="assets/img/hero.png" class="hero-img" />
-  <h1>Planifica. Compra. Cocina fácil.</h1>
-  <p>Comer bien, sin complicarte.</p>
 </section>
 
 <section id="view-home" class="view active">
@@ -38,17 +35,7 @@
 
 <section id="view-shopping" class="view">
   <h2 class="view-title">🛒 Lista de compras</h2>
-  <table class="shopping-table">
-    <thead>
-      <tr>
-        <th>Ingrediente</th>
-        <th>Unidad</th>
-        <th>Categoría</th>
-        <th>Cantidad</th>
-      </tr>
-    </thead>
-    <tbody id="shoppingList"></tbody>
-  </table>
+  <div id="shoppingList"></div>
 </section>
 
 <div id="recipeModal" class="modal" aria-hidden="true">
