@@ -12,13 +12,12 @@ let filtro="all";
 
 /* ===== CSV ===== */
 function loadCSV(url){
-  return new Promise((res,rej)=>{
+  return new Promise(res=>{
     Papa.parse(url,{
       download:true,
       header:true,
       skipEmptyLines:true,
-      complete:r=>res(r.data),
-      error:rej
+      complete:r=>res(r.data)
     });
   });
 }
@@ -37,20 +36,16 @@ document.addEventListener("DOMContentLoaded",async()=>{
 });
 
 /* ===== NAV ===== */
-window.switchView = function(v, btn){
+window.switchView=function(v,btn){
   document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
-  const target=document.getElementById("view-"+v);
-  if(target) target.classList.add("active");
-
+  document.getElementById("view-"+v).classList.add("active");
   document.querySelectorAll(".nav-item").forEach(x=>x.classList.remove("active"));
   if(btn) btn.classList.add("active");
-
   window.scrollTo({top:0,behavior:"smooth"});
 };
 
 function goHome(){
-  const btn=document.getElementById("navHome");
-  switchView("home",btn);
+  switchView("home",document.getElementById("navHome"));
 }
 
 /* ===== FILTERS ===== */
@@ -59,15 +54,10 @@ function buildFilters(){
   const set=new Set();
 
   platos.forEach(p=>{
-    (p.tipo_plato||"")
-      .split(";")
-      .map(t=>t.trim())
-      .filter(Boolean)
-      .forEach(t=>set.add(t));
+    (p.tipo_plato||"").split(";").map(t=>t.trim()).filter(Boolean).forEach(t=>set.add(t));
   });
 
   chips.innerHTML=`<span class="chip active" data-f="all">Todas</span>`;
-
   [...set].sort().forEach(t=>{
     const c=document.createElement("span");
     c.className="chip";
@@ -101,8 +91,9 @@ function renderFeed(){
         <img src="${IMG_BASE+p.imagen_archivo}">
         <div class="card-body">
           <h3>${p.nombre_plato}</h3>
-          <button type="button" onclick="openRecipe('${p.codigo}')">Ver plato</button>
+          <button type="button">Ver plato</button>
         </div>`;
+      card.querySelector("button").onclick=()=>openRecipe(p.codigo);
       feed.appendChild(card);
     });
 }
@@ -124,9 +115,8 @@ window.openRecipe=function(c){
   renderRecipeIngredients(c);
   renderSteps(c);
 
-  const modal=document.getElementById("recipeModal");
-  modal.setAttribute("aria-hidden","false");
-  modal.querySelector(".modal-box").scrollTop=0;
+  document.getElementById("recipeModal").setAttribute("aria-hidden","false");
+  document.querySelector(".modal-box").scrollTop=0;
 };
 
 window.closeRecipe=function(){
@@ -134,8 +124,8 @@ window.closeRecipe=function(){
   document.getElementById("videoFrame").src="";
 };
 
-/* cerrar clic afuera */
-document.getElementById("recipeModal").addEventListener("click",(e)=>{
+/* ===== CLICK FUERA ===== */
+document.getElementById("recipeModal").addEventListener("click",e=>{
   if(e.target.id==="recipeModal") closeRecipe();
 });
 
@@ -156,28 +146,30 @@ function renderSteps(c){
   });
 }
 
-/* ===== FIX DEFINITIVO: AGREGAR A SEMANA ===== */
+/* ===== AGREGAR A SEMANA (FIX DESKTOP) ===== */
 window.addCurrentPlate=function(){
   if(!currentPlate) return;
 
-  const exists=week.some(w=>w.codigo===currentPlate.codigo);
-  if(!exists){
-    week.push({
-      codigo:currentPlate.codigo,
-      nombre:currentPlate.nombre_plato
-    });
+  if(!week.some(w=>w.codigo===currentPlate.codigo)){
+    week.push({codigo:currentPlate.codigo,nombre:currentPlate.nombre_plato});
     localStorage.setItem(STORAGE,JSON.stringify(week));
   }
 
   renderWeek();
   renderShopping();
   updateCounter();
-
   closeRecipe();
-
-  // IMPORTANTE: delay leve para desktop
-  setTimeout(()=>goHome(),50);
+  setTimeout(goHome,50);
 };
+
+/* 🔥 FIX CLICK DESKTOP */
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-add-week]");
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  addCurrentPlate();
+});
 
 /* ===== WEEK ===== */
 function renderWeek(){
@@ -200,7 +192,7 @@ window.removeWeek=function(i){
   updateCounter();
 };
 
-/* ===== SHOPPING (ORDENADO + 2 DEC) ===== */
+/* ===== SHOPPING ===== */
 function renderShopping(){
   const tbody=document.getElementById("shoppingList");
   tbody.innerHTML="";
@@ -208,26 +200,26 @@ function renderShopping(){
 
   week.forEach(w=>{
     ingredientes.filter(i=>i.codigo_plato===w.codigo).forEach(i=>{
-      const categoria=(i.tipo_ingrediente||"Otros").trim();
-      const ingrediente=(i.ingrediente||"").trim();
-      const unidad=(i.unidad_reg||"").trim();
+      const cat=(i.tipo_ingrediente||"Otros").trim();
+      const ing=(i.ingrediente||"").trim();
+      const unit=(i.unidad_reg||"").trim();
       const qty=Number(i.cantidad_reg)||0;
 
-      const key=`${categoria}|${ingrediente}|${unidad}`;
-      if(!map[key]) map[key]={categoria,ingrediente,unidad,qty:0};
+      const key=`${cat}|${ing}|${unit}`;
+      if(!map[key]) map[key]={cat,ing,unit,qty:0};
       map[key].qty+=qty;
     });
   });
 
   Object.values(map)
-    .sort((a,b)=>a.categoria.localeCompare(b.categoria)||b.qty-a.qty)
+    .sort((a,b)=>a.cat.localeCompare(b.cat)||b.qty-a.qty)
     .forEach(r=>{
       tbody.innerHTML+=`
         <tr>
-          <td>${r.categoria}</td>
-          <td>${r.ingrediente}</td>
-          <td>${r.unidad}</td>
-          <td style="text-align:right;">${r.qty.toFixed(2)}</td>
+          <td>${r.cat}</td>
+          <td>${r.ing}</td>
+          <td>${r.unit}</td>
+          <td style="text-align:right">${r.qty.toFixed(2)}</td>
         </tr>`;
     });
 }
