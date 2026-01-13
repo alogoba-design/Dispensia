@@ -1,6 +1,7 @@
 const PLATOS_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=0&single=true&output=csv";
 const ING_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=688098548&single=true&output=csv";
 const PASOS_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vQUhilXj9P1Kh1JrpnSJLCT0TM_XBpMM-d3fbw17RREop6Jcz73U_aqmgM-dL5EO8T5Tr_8qG_RgUrx/pub?gid=1382429978&single=true&output=csv";
+
 const IMG_BASE="assets/img/";
 const STORAGE="dispensia_week";
 
@@ -9,14 +10,19 @@ let week=JSON.parse(localStorage.getItem(STORAGE))||[];
 let currentPlate=null;
 let filtro="all";
 
-/* CSV */
+/* ===== CSV ===== */
 function loadCSV(url){
-  return new Promise((res,rej)=>{
-    Papa.parse(url,{download:true,header:true,skipEmptyLines:true,complete:r=>res(r.data),error:rej});
+  return new Promise(res=>{
+    Papa.parse(url,{
+      download:true,
+      header:true,
+      skipEmptyLines:true,
+      complete:r=>res(r.data)
+    });
   });
 }
 
-/* INIT */
+/* ===== INIT ===== */
 document.addEventListener("DOMContentLoaded",async()=>{
   platos=await loadCSV(PLATOS_URL);
   ingredientes=await loadCSV(ING_URL);
@@ -27,19 +33,9 @@ document.addEventListener("DOMContentLoaded",async()=>{
   renderWeek();
   renderShopping();
   updateCounter();
-
-  // DESKTOP FIX: attach click listener explicitly
-  const addBtn = document.getElementById("btnAddWeek");
-  if(addBtn){
-    addBtn.addEventListener("click",(e)=>{
-      e.preventDefault();
-      e.stopPropagation();
-      addCurrentPlate();
-    });
-  }
 });
 
-/* NAV */
+/* ===== NAV ===== */
 window.switchView=function(v,btn){
   document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
   document.getElementById("view-"+v).classList.add("active");
@@ -49,15 +45,17 @@ window.switchView=function(v,btn){
 };
 
 function goHome(){
-  const btn=document.getElementById("navHome");
-  switchView("home",btn);
+  switchView("home",document.getElementById("navHome"));
 }
 
-/* FILTERS */
+/* ===== FILTERS ===== */
 function buildFilters(){
   const chips=document.getElementById("chips");
   const set=new Set();
-  platos.forEach(p=>(p.tipo_plato||"").split(";").map(t=>t.trim()).filter(Boolean).forEach(t=>set.add(t)));
+
+  platos.forEach(p=>{
+    (p.tipo_plato||"").split(";").map(t=>t.trim()).filter(Boolean).forEach(t=>set.add(t));
+  });
 
   chips.innerHTML=`<span class="chip active" data-f="all">Todas</span>`;
   [...set].sort().forEach(t=>{
@@ -78,10 +76,11 @@ function buildFilters(){
   });
 }
 
-/* FEED */
+/* ===== FEED ===== */
 function renderFeed(){
   const feed=document.getElementById("feed");
   feed.innerHTML="";
+
   platos
     .filter(p=>p.etapa==="1"||p.etapa==="2")
     .filter(p=>filtro==="all"||(p.tipo_plato||"").includes(filtro))
@@ -99,7 +98,7 @@ function renderFeed(){
     });
 }
 
-/* MODAL */
+/* ===== MODAL ===== */
 window.openRecipe=function(c){
   currentPlate=platos.find(p=>p.codigo===c);
   if(!currentPlate) return;
@@ -116,9 +115,8 @@ window.openRecipe=function(c){
   renderRecipeIngredients(c);
   renderSteps(c);
 
-  const modal=document.getElementById("recipeModal");
-  modal.setAttribute("aria-hidden","false");
-  modal.querySelector(".modal-box")?.scrollTo(0,0);
+  document.getElementById("recipeModal").setAttribute("aria-hidden","false");
+  document.querySelector(".modal-box").scrollTop=0;
 };
 
 window.closeRecipe=function(){
@@ -126,10 +124,12 @@ window.closeRecipe=function(){
   document.getElementById("videoFrame").src="";
 };
 
-document.getElementById("recipeModal").addEventListener("click",(e)=>{
+/* ===== CLICK FUERA ===== */
+document.getElementById("recipeModal").addEventListener("click",e=>{
   if(e.target.id==="recipeModal") closeRecipe();
 });
 
+/* ===== RECETA ===== */
 function renderRecipeIngredients(c){
   const ul=document.getElementById("modalIngredients");
   ul.innerHTML="";
@@ -146,7 +146,7 @@ function renderSteps(c){
   });
 }
 
-/* ADD WEEK */
+/* ===== AGREGAR A SEMANA (FIX DESKTOP) ===== */
 window.addCurrentPlate=function(){
   if(!currentPlate) return;
 
@@ -162,6 +162,16 @@ window.addCurrentPlate=function(){
   setTimeout(goHome,50);
 };
 
+/* 🔥 FIX CLICK DESKTOP */
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-add-week]");
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  addCurrentPlate();
+});
+
+/* ===== WEEK ===== */
 function renderWeek(){
   const el=document.getElementById("weekList");
   el.innerHTML="";
@@ -182,7 +192,7 @@ window.removeWeek=function(i){
   updateCounter();
 };
 
-/* SHOPPING (Categoria -> Cantidad desc) */
+/* ===== SHOPPING ===== */
 function renderShopping(){
   const tbody=document.getElementById("shoppingList");
   tbody.innerHTML="";
@@ -190,30 +200,31 @@ function renderShopping(){
 
   week.forEach(w=>{
     ingredientes.filter(i=>i.codigo_plato===w.codigo).forEach(i=>{
-      const categoria=(i.tipo_ingrediente||"Otros").trim();
-      const ingrediente=(i.ingrediente||"").trim();
-      const unidad=(i.unidad_reg||"").trim();
+      const cat=(i.tipo_ingrediente||"Otros").trim();
+      const ing=(i.ingrediente||"").trim();
+      const unit=(i.unidad_reg||"").trim();
       const qty=Number(i.cantidad_reg)||0;
 
-      const key=`${categoria}|${ingrediente}|${unidad}`;
-      if(!map[key]) map[key]={categoria,ingrediente,unidad,qty:0};
+      const key=`${cat}|${ing}|${unit}`;
+      if(!map[key]) map[key]={cat,ing,unit,qty:0};
       map[key].qty+=qty;
     });
   });
 
   Object.values(map)
-    .sort((a,b)=>a.categoria.localeCompare(b.categoria)||b.qty-a.qty)
+    .sort((a,b)=>a.cat.localeCompare(b.cat)||b.qty-a.qty)
     .forEach(r=>{
       tbody.innerHTML+=`
         <tr>
-          <td>${r.categoria}</td>
-          <td>${r.ingrediente}</td>
-          <td>${r.unidad}</td>
-          <td style="text-align:right;">${r.qty.toFixed(2)}</td>
+          <td>${r.cat}</td>
+          <td>${r.ing}</td>
+          <td>${r.unit}</td>
+          <td style="text-align:right">${r.qty.toFixed(2)}</td>
         </tr>`;
     });
 }
 
+/* ===== COUNTER ===== */
 function updateCounter(){
   document.getElementById("weekCounter").textContent=`${week.length} platos en tu semana`;
 }

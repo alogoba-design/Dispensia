@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Dispensia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="stylesheet" href="dispensia.css" />
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -26,16 +27,19 @@
   </div>
 </section>
 
+<!-- HOME -->
 <section id="view-home" class="view active">
   <section class="filters" id="chips"></section>
   <main id="feed" class="feed"></main>
 </section>
 
+<!-- SEMANA -->
 <section id="view-week" class="view">
   <h2 class="view-title">📅 Mi semana</h2>
   <div id="weekList" class="week-cards"></div>
 </section>
 
+<!-- COMPRAS -->
 <section id="view-shopping" class="view">
   <h2 class="view-title">🛒 Lista de compras</h2>
 
@@ -75,8 +79,8 @@
     <ol id="modalSteps"></ol>
 
     <div class="modal-actions">
-      <!-- fallback onclick + robust data hook -->
-      <button class="primary" id="btnAddWeek" data-add-week onclick="addCurrentPlate()" type="button">
+      <!-- 👇 SIN onclick, FIX DESKTOP -->
+      <button class="primary" type="button" data-add-week>
         Agregar a mi semana
       </button>
       <button class="ghost" onclick="closeRecipe()" type="button">Volver</button>
@@ -84,6 +88,7 @@
   </div>
 </div>
 
+<!-- NAV -->
 <nav class="bottom-nav">
   <button class="nav-item active" id="navHome" onclick="switchView('home',this)" type="button">🏠<span>Inicio</span></button>
   <button class="nav-item" id="navWeek" onclick="switchView('week',this)" type="button">📅<span>Semana</span></button>
