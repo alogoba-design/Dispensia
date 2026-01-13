@@ -124,10 +124,6 @@ window.closeRecipe=function(){
   document.getElementById("videoFrame").src="";
 };
 
-/* ===== CLICK FUERA ===== */
-document.getElementById("recipeModal").addEventListener("click",e=>{
-  if(e.target.id==="recipeModal") closeRecipe();
-});
 
 /* ===== RECETA ===== */
 function renderRecipeIngredients(c){
