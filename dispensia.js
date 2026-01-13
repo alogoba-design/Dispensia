@@ -148,6 +148,7 @@ function renderSteps(c){
 
 /* ===== AGREGAR A SEMANA (FIX DESKTOP) ===== */
 window.addCurrentPlate=function(){
+  event?.stopPropagation();
   if(!currentPlate) return;
 
   if(!week.some(w=>w.codigo===currentPlate.codigo)){
