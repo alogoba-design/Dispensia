@@ -147,30 +147,25 @@ function renderSteps(c){
 }
 
 /* ===== AGREGAR A SEMANA (FIX DESKTOP) ===== */
-window.addCurrentPlate=function(){
-  event?.stopPropagation();
-  if(!currentPlate) return;
+window.addCurrentPlate = function () {
+  // ⛔ NO usar event aquí (no existe en desktop)
+  if (!currentPlate) return;
 
-  if(!week.some(w=>w.codigo===currentPlate.codigo)){
-    week.push({codigo:currentPlate.codigo,nombre:currentPlate.nombre_plato});
-    localStorage.setItem(STORAGE,JSON.stringify(week));
+  if (!week.some(w => w.codigo === currentPlate.codigo)) {
+    week.push({
+      codigo: currentPlate.codigo,
+      nombre: currentPlate.nombre_plato
+    });
+    localStorage.setItem(STORAGE, JSON.stringify(week));
   }
 
   renderWeek();
   renderShopping();
   updateCounter();
   closeRecipe();
-  setTimeout(goHome,50);
+  setTimeout(goHome, 50);
 };
 
-/* 🔥 FIX CLICK DESKTOP */
-document.addEventListener("click",e=>{
-  const btn=e.target.closest("[data-add-week]");
-  if(!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
-  addCurrentPlate();
-});
 
 /* ===== WEEK ===== */
 function renderWeek(){
